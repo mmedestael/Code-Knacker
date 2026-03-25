@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODE AGENCY – Interaktive Lernlandkarte</title>
+<style>
+  /* Nur system-eigene Fonts – kein externer Abruf, keine Lizenzprobleme */
+  :root {
+    --font-display: "Courier New", Courier, monospace;
+    --font-body: "Segoe UI", Arial, Helvetica, sans-serif;
+    --bg:#0a0e1a; --surface:#111827; --surface2:#1a2235; --border:#1e3a5f;
+    --accent:#00d4ff; --accent2:#7c3aed; --gold:#f59e0b; --red:#ef4444;
+    --text:#e2e8f0; --text-dim:#94a3b8;
+    --easy:#10b981; --medium:#f59e0b; --hard:#ef4444; --boss:#7c3aed;
+  }
+
+- { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+background: var(–bg);
+color: var(–text);
+font-family: var(–font-body);
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+.container { max-width:920px; margin:0 auto; padding:20px; }
+
+/* ── HEADER ── */
+.agency-badge {
+display:inline-block;
+background:linear-gradient(135deg,#00d4ff22,#7c3aed22);
+border:1px solid var(–accent);
+border-radius:4px;
+padding:4px 16px;
+font-family: var(–font-display);
+font-size:11px;
+letter-spacing:4px;
+color:var(–accent);
+margin-bottom:16px;
+}
+.header { text-align:center; padding:36px 20px 26px; }
+.header h1 {
+font-family: var(–font-display);
+font-size:clamp(24px,6vw,46px);
+font-weight:700;
+background:linear-gradient(135deg,#00d4ff,#7c3aed,#10b981);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+background-clip:text;
+line-height:1.15;
+margin-bottom:8px;
+}
+.header .subtitle {
+color:var(–text-dim);
+font-size:13px;
+letter-spacing:2px;
+text-transform:uppercase;
+margin-bottom:20px;
+}
+
+/* ── STORY ── */
+.story-box {
+background:linear-gradient(135deg,#0a1628,#111827);
+border:1px solid var(–accent);
+border-left:4px solid var(–accent);
+border-radius:8px;
+padding:20px 24px;
+margin-bottom:24px;
+position:relative;
+overflow:hidden;
+}
+.story-box::before { content:‘📡’; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:56px; opacity:.07; }
+.story-box .label { font-family:var(–font-display); font-size:10px; letter-spacing:3px; color:var(–accent); margin-bottom:8px; }
+.story-box p { color:var(–text); line-height:1.7; font-size:14px; }
+.story-box strong { color:var(–accent); }
+
+/* ── PROGRESS ── */
+.progress-section { background:var(–surface); border:1px solid var(–border); border-radius:10px; padding:16px 20px; margin-bottom:24px; }
+.progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.progress-header span { font-family:var(–font-display); font-size:10px; letter-spacing:2px; color:var(–text-dim); }
+.progress-header .pts { color:var(–gold); font-weight:700; }
+.progress-bar-bg { background:#1e293b; border-radius:100px; height:10px; overflow:hidden; }
+.progress-bar-fill { height:100%; background:linear-gradient(90deg,var(–accent),var(–accent2)); border-radius:100px; width:0%; transition:width .6s ease; }
+.badges { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+.badge { background:var(–surface2); border:1px solid var(–border); border-radius:6px; padding:5px 10px; font-size:11px; color:var(–text-dim); transition:all .3s; }
+.badge.earned { border-color:var(–gold); color:var(–gold); background:#1a1500; }
+
+/* ── ROLES ── */
+.roles-box { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+.role-card { background:var(–surface); border:1px solid var(–border); border-radius:10px; padding:14px; text-align:center; }
+.role-card .icon { font-size:24px; margin-bottom:6px; }
+.role-card .role-name { font-family:var(–font-display); font-size:10px; letter-spacing:1px; color:var(–accent); margin-bottom:4px; }
+.role-card .role-desc { font-size:11px; color:var(–text-dim); line-height:1.4; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+font-family:var(–font-display);
+font-size:10px;
+letter-spacing:4px;
+color:var(–text-dim);
+text-transform:uppercase;
+margin-bottom:12px;
+display:flex;
+align-items:center;
+gap:12px;
+}
+.section-label::after { content:’’; flex:1; height:1px; background:var(–border); }
+
+/* ── LEVEL CARDS ── */
+.level-card { background:var(–surface); border:1px solid var(–border); border-radius:12px; margin-bottom:14px; overflow:hidden; }
+.level-card.easy  { border-left:4px solid var(–easy); }
+.level-card.medium{ border-left:4px solid var(–medium); }
+.level-card.hard  { border-left:4px solid var(–hard); }
+.level-card.boss  { border-left:4px solid var(–boss); border-color:var(–boss); }
+.level-card.side  { border-left:4px solid var(–accent); border-style:dashed; }
+
+/* Klickbarer Header */
+.level-header {
+display:flex;
+align-items:center;
+gap:14px;
+padding:16px 18px;
+cursor:pointer;
+user-select:none;
+-webkit-user-select:none;
+background:transparent;
+border:none;
+width:100%;
+text-align:left;
+color:var(–text);
+}
+.level-header:hover { background:rgba(255,255,255,.025); }
+
+.level-num { font-family:var(–font-display); font-size:20px; font-weight:700; min-width:42px; text-align:center; line-height:1; }
+.easy .level-num  { color:var(–easy); }
+.medium .level-num{ color:var(–medium); }
+.hard .level-num  { color:var(–hard); }
+.boss .level-num  { color:var(–boss); font-size:12px; }
+.side .level-num  { color:var(–accent); font-size:14px; }
+
+.level-meta { flex:1; }
+.level-title { font-size:15px; font-weight:700; color:var(–text); margin-bottom:4px; }
+.level-tags { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+
+.tag { font-size:10px; padding:2px 7px; border-radius:4px; font-family:var(–font-display); letter-spacing:1px; }
+.tag-easy  { background:#052e16; color:var(–easy); }
+.tag-medium{ background:#1c1002; color:var(–medium); }
+.tag-hard  { background:#1f0a0a; color:var(–hard); }
+.tag-boss  { background:#1e0a3c; color:var(–boss); }
+.tag-side  { background:#001829; color:var(–accent); }
+.tag-pts   { background:#1a1500; color:var(–gold); }
+.tag-skill { background:#0f172a; color:var(–text-dim); }
+
+.level-icon { font-size:24px; }
+.chevron { font-size:11px; color:var(–text-dim); transition:transform .3s; min-width:16px; text-align:center; }
+
+/* ── LEVEL BODY (collapsed/expanded via inline style) ── */
+.level-body {
+overflow:hidden;
+transition:max-height .35s ease, padding .25s ease;
+max-height:0;
+padding:0 18px;
+border-top:0px solid var(–border);
+}
+.level-body.open {
+max-height:9999px;
+padding:0 18px 22px;
+border-top:1px solid var(–border);
+}
+
+/* ── CONTENT ── */
+.mission-intro { background:var(–surface2); border-radius:8px; padding:13px 16px; margin:14px 0; font-size:13px; color:var(–text-dim); line-height:1.7; border-left:3px solid var(–accent); }
+.mission-intro strong { color:var(–text); }
+
+.task-block { margin-top:14px; }
+.task-label { font-family:var(–font-display); font-size:10px; letter-spacing:2px; color:var(–text-dim); margin-bottom:8px; display:block; }
+.task { background:#0a0e1a; border:1px solid var(–border); border-radius:8px; padding:13px 15px; margin-bottom:10px; font-size:13px; line-height:1.7; color:var(–text); }
+.task .task-num { font-family:var(–font-display); color:var(–accent); font-size:10px; margin-bottom:6px; display:block; }
+.task em { color:var(–accent); font-style:normal; }
+.task strong { color:var(–gold); }
+
+/* ── INPUT FIELDS ── */
+.input-label { font-size:11px; color:var(–text-dim); margin-bottom:4px; margin-top:10px; display:block; }
+.answer-box {
+width:100%;
+background:#060a12;
+border:1px solid var(–border);
+border-radius:6px;
+padding:10px 12px;
+color:var(–text);
+font-family:var(–font-body);
+font-size:13px;
+resize:vertical;
+min-height:70px;
+margin-top:4px;
+display:block;
+}
+.answer-box:focus { outline:none; border-color:var(–accent); box-shadow:0 0 0 2px rgba(0,212,255,.1); }
+.answer-box::placeholder { color:#334155; }
+
+/* ── MORSE DECODER ── */
+.morse-decoder { background:#030810; border:1px solid var(–accent); border-radius:10px; padding:16px; margin:14px 0; }
+.dec-title { font-family:var(–font-display); font-size:10px; letter-spacing:3px; color:var(–accent); margin-bottom:10px; display:block; }
+.dec-row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.dec-input { flex:1; min-width:150px; background:#060a12; border:1px solid var(–border); border-radius:6px; padding:10px 12px; color:var(–text); font-family:var(–font-body); font-size:13px; }
+.dec-input:focus { outline:none; border-color:var(–accent); }
+.dec-btn { background:var(–accent); border:none; border-radius:6px; padding:10px 16px; color:#000; font-family:var(–font-display); font-size:10px; letter-spacing:1px; cursor:pointer; font-weight:700; }
+.dec-output { background:#001020; border:1px solid var(–border); border-radius:6px; padding:12px; font-family:var(–font-display); font-size:16px; letter-spacing:4px; color:var(–accent); min-height:44px; word-break:break-all; }
+.dec-hint { font-size:11px; color:var(–text-dim); margin-top:6px; }
+
+.morse-table-small { display:grid; grid-template-columns:repeat(auto-fill,minmax(68px,1fr)); gap:5px; margin:10px 0; }
+.morse-cell { background:#001020; border:1px solid var(–border); border-radius:5px; padding:5px 7px; text-align:center; }
+.morse-cell .letter { font-family:var(–font-display); font-size:13px; color:var(–text); font-weight:700; }
+.morse-cell .code   { font-family:var(–font-display); font-size:12px; color:var(–accent); letter-spacing:3px; margin-top:2px; }
+
+/* ── BARCODE QUIZ ── */
+.barcode-quiz { background:#030810; border:1px solid var(–medium); border-radius:10px; padding:16px; margin:14px 0; }
+.barcode-quiz .dec-title { color:var(–medium); }
+.quiz-question { background:#0a0e1a; border:1px solid var(–border); border-radius:8px; padding:12px 14px; margin-bottom:10px; font-size:13px; }
+.quiz-question p { margin-bottom:8px; line-height:1.6; }
+.quiz-options { display:flex; flex-direction:column; gap:6px; }
+.quiz-option { display:flex; align-items:center; gap:8px; padding:8px 10px; background:#0d1424; border:1px solid var(–border); border-radius:6px; cursor:pointer; font-size:13px; }
+.quiz-option:hover { border-color:var(–medium); }
+.quiz-option input[type=radio] { cursor:pointer; }
+.check-btn { margin-top:10px; background:var(–medium); border:none; border-radius:6px; padding:9px 18px; color:#000; font-family:var(–font-display); font-size:10px; letter-spacing:1px; cursor:pointer; font-weight:700; }
+.quiz-feedback { margin-top:10px; padding:10px 14px; border-radius:6px; font-size:13px; display:none; }
+.quiz-feedback.correct { background:#052e16; border:1px solid var(–easy); color:var(–easy); }
+.quiz-feedback.wrong   { background:#1f0a0a; border:1px solid var(–red); color:var(–red); }
+
+/* ── EGG PUZZLE ── */
+.egg-puzzle { background:#030810; border:1px solid var(–easy); border-radius:10px; padding:16px; margin:14px 0; }
+.egg-puzzle .dec-title { color:var(–easy); }
+.egg-builder { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; align-items:flex-end; }
+.egg-slot { display:flex; flex-direction:column; gap:4px; }
+.egg-slot label { font-size:10px; color:var(–text-dim); font-family:var(–font-display); }
+.egg-select { background:#001020; border:1px solid var(–border); border-radius:6px; padding:7px 9px; color:var(–text); font-family:var(–font-body); font-size:13px; cursor:pointer; }
+.egg-select:focus { outline:none; border-color:var(–easy); }
+.egg-sep { font-size:20px; color:var(–text-dim); padding-bottom:2px; }
+.egg-display { font-family:var(–font-display); font-size:20px; font-weight:700; letter-spacing:5px; text-align:center; padding:14px; background:#001020; border-radius:8px; margin:12px 0; border:1px solid var(–border); }
+.egg-meaning { font-size:12px; color:var(–text-dim); text-align:center; margin-bottom:10px; }
+.egg-explain { background:#0a1f0f; border:1px solid #1a4a2a; border-radius:8px; padding:12px 14px; font-size:12px; line-height:1.8; color:#a7f3d0; margin-top:10px; display:none; }
+.egg-explain strong { color:var(–easy); }
+.reveal-btn { background:var(–easy); border:none; border-radius:6px; padding:9px 18px; color:#000; font-family:var(–font-display); font-size:10px; letter-spacing:1px; cursor:pointer; font-weight:700; }
+
+/* ── VISUALS ── */
+.morse-visual { font-family:var(–font-display); font-size:18px; letter-spacing:6px; color:var(–accent); padding:12px 16px; background:#001020; border-radius:6px; text-align:center; margin:10px 0; word-break:break-all; }
+.barcode-visual { display:flex; align-items:flex-end; gap:2px; justify-content:center; padding:12px 16px; background:white; border-radius:6px; margin:10px 0; height:65px; }
+.bar { background:#000; height:100%; border-radius:1px; }
+.egg-visual { text-align:center; padding:14px; background:#0a1628; border-radius:8px; margin:10px 0; border:1px solid var(–border); }
+.egg-code { font-family:var(–font-display); font-size:24px; font-weight:700; letter-spacing:5px; margin-bottom:8px; }
+.egg-code .c1{color:#ef4444;} .egg-code .c2{color:#f59e0b;} .egg-code .c3{color:#10b981;}
+.egg-code .c4{color:#00d4ff;} .egg-code .c5{color:#7c3aed;} .egg-code .c6{color:#f97316;}
+.egg-legend { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; font-size:11px; color:var(–text-dim); }
+.egg-legend span { background:var(–surface); padding:3px 8px; border-radius:4px; }
+
+/* ── TIP + DONE ── */
+.tip-box { background:#0a1f0f; border:1px solid var(–easy); border-radius:8px; padding:10px 14px; margin-top:12px; font-size:12px; color:var(–easy); }
+.tip-box::before { content:’💡 TIPP: ’; font-weight:700; }
+
+.done-btn {
+display:inline-block;
+margin-top:16px;
+background:linear-gradient(135deg,var(–accent2),#5b21b6);
+border:none;
+border-radius:8px;
+padding:11px 22px;
+color:white;
+font-family:var(–font-display);
+font-size:11px;
+letter-spacing:2px;
+cursor:pointer;
+text-transform:uppercase;
+}
+.done-btn.completed { background:linear-gradient(135deg,var(–easy),#059669); cursor:default; }
+
+/* ── BOSS GLOW ── */
+.boss-glow { animation: bossGlow 2s ease-in-out infinite alternate; }
+@keyframes bossGlow {
+from { box-shadow:0 0 10px rgba(124,58,237,.2); }
+to   { box-shadow:0 0 30px rgba(124,58,237,.5),0 0 60px rgba(124,58,237,.2); }
+}
+
+/* ── CONNECTOR ── */
+.map-connector { display:flex; justify-content:center; height:16px; }
+.map-connector::before { content:’’; width:2px; background:var(–border); }
+
+/* ── SIDE NOTE ── */
+.side-mission-note { background:#001020; border:1px dashed var(–accent); border-radius:8px; padding:8px 12px; font-size:12px; color:var(–accent); margin-bottom:12px; }
+
+/* ── COMPLETION ── */
+.completion-banner { display:none; text-align:center; padding:36px 20px; background:linear-gradient(135deg,#0a1628,#1e0a3c); border:1px solid var(–boss); border-radius:12px; margin-top:24px; }
+.completion-banner h2 { font-family:var(–font-display); font-size:clamp(18px,4vw,28px); background:linear-gradient(135deg,var(–gold),var(–accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:10px; }
+.star-row { font-size:32px; margin:12px 0; letter-spacing:8px; }
+
+@media(max-width:600px){
+.roles-box{grid-template-columns:1fr;}
+.level-icon{display:none;}
+.dec-row{flex-direction:column;}
+.egg-builder{flex-direction:column;}
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+
+  <div class="header">
+    <div class="agency-badge">🔐 Geheimauftrag Aktiviert</div>
+    <h1>CODE AGENCY</h1>
+    <p class="subtitle">Interaktive Lernlandkarte · Klasse 6 · Codes im Alltag</p>
+  </div>
+
+  <!-- STORY -->
+
+  <div class="story-box">
+    <div class="label">📜 MISSION BRIEFING</div>
+    <p>Das Schulfest steht kurz vor dem Start – doch dann passiert das Undenkbare:<br>
+    <strong>Alle Pläne sind in geheimen Codes verschlüsselt worden!</strong> Die Dekoration, der Essensstand, die Musikanlage – niemand weiß mehr, was wo aufgebaut werden soll.<br><br>
+    Ihr seid das einzige Team, das noch helfen kann. Als <strong>Code Agents</strong> müsst ihr Morsecode entschlüsseln, Strichcodes analysieren und Eiercodes zusammensetzen – und am Ende sogar euren eigenen Code erfinden!</p>
+  </div>
+
+  <!-- PROGRESS -->
+
+  <div class="progress-section">
+    <div class="progress-header">
+      <span>⚡ AGENTEN-FORTSCHRITT</span>
+      <span class="pts">🏆 <span id="pts-display">0</span> / 95 Punkte</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+    <div class="badges">
+      <div class="badge" id="badge-morse">📡 Morse-Experte</div>
+      <div class="badge" id="badge-barcode">🔲 Barcode-Detektiv</div>
+      <div class="badge" id="badge-egg">🥚 Eiercode-Profi</div>
+      <div class="badge" id="badge-creator">✍️ Code-Erfinder</div>
+      <div class="badge" id="badge-boss">⚡ Top-Agent</div>
+    </div>
+  </div>
+
+  <!-- ROLLEN -->
+
+  <div class="section-label">👥 Gruppenrollen</div>
+  <div class="roles-box">
+    <div class="role-card"><div class="icon">🔍</div><div class="role-name">Analyst</div><div class="role-desc">Liest vor, steuert die Diskussion, gibt Ergebnis bekannt.</div></div>
+    <div class="role-card"><div class="icon">✏️</div><div class="role-name">Protokollant</div><div class="role-desc">Tippt Antworten in die Felder und sichert alles.</div></div>
+    <div class="role-card"><div class="icon">🚀</div><div class="role-name">Präsentator</div><div class="role-desc">Erklärt am Ende die Ergebnisse der Gruppe.</div></div>
+  </div>
+
+  <!-- LEVELS -->
+
+  <div class="section-label">🗺️ Lernlandkarte – Level 1 bis Boss</div>
+
+  <!-- ═══ LEVEL 1 ═══ -->
+
+  <div class="level-card easy" id="lv1">
+    <button class="level-header" onclick="toggleLevel('lv1')" type="button">
+      <div class="level-num">01</div>
+      <div class="level-icon">📡</div>
+      <div class="level-meta">
+        <div class="level-title">Erstkontakt – Was ist Morsecode?</div>
+        <div class="level-tags"><span class="tag tag-easy">LEICHT</span><span class="tag tag-pts">⭐ 10 Punkte</span><span class="tag tag-skill">Analyse</span></div>
+      </div>
+      <div class="chevron" id="ch-lv1">▼</div>
+    </button>
+    <div class="level-body" id="body-lv1">
+
+```
+  <div class="mission-intro">📌 <strong>Mission:</strong> Findet heraus, wie Morsecode funktioniert – und entschlüsselt eure erste Botschaft mit dem Live-Decoder!</div>
+
+  <div class="morse-visual">... --- ...</div>
+  <p style="text-align:center;font-size:11px;color:var(--text-dim);margin-bottom:12px;">↑ Was bedeutet das? Findet es mit dem Decoder heraus!</p>
+
+  <!-- LIVE MORSE DECODER -->
+  <div class="morse-decoder">
+    <span class="dec-title">🔄 TEXT → MORSECODE (Live)</span>
+    <div class="dec-row">
+      <input class="dec-input" id="morse-input" placeholder="Gib deinen Namen ein, z. B. ANNA …" oninput="encodeMorse()" autocomplete="off">
+    </div>
+    <div class="dec-output" id="morse-output">· · · — — — · · ·</div>
+    <div class="dec-hint">Tippe einen Text → Morsecode erscheint sofort darunter.</div>
+
+    <span class="dec-title" style="margin-top:14px;">🔄 MORSECODE → TEXT</span>
+    <div class="dec-row">
+      <input class="dec-input" id="decode-input" placeholder="· − · ·   −   · −   /   (Buchst. = Leerz., Wort = /)" oninput="decodeMorse()" autocomplete="off">
+    </div>
+    <div class="dec-output" id="decode-output">?</div>
+    <div class="dec-hint">Buchstaben durch Leerzeichen trennen, Wörter durch &nbsp;/&nbsp; trennen.</div>
+  </div>
+
+  <!-- Morse-Tabelle -->
+  <span class="task-label" style="margin-top:14px;">Morse-Alphabet</span>
+  <div class="morse-table-small" id="morse-ref"></div>
+
+  <div class="task-block">
+    <span class="task-label">📋 AUFGABEN</span>
+    <div class="task">
+      <span class="task-num">AUFGABE 1.1 – SOS entschlüsseln</span>
+      Was bedeutet <em>···  −−−  ···</em>? Wann und warum wurde dieses Signal berühmt?
+      <label class="input-label">✏️ Eure Antwort:</label>
+      <textarea class="answer-box" placeholder="Schreibt hier eure Antwort …"></textarea>
+    </div>
+    <div class="task">
+      <span class="task-num">AUFGABE 1.2 – Namen kodieren</span>
+      Tippt euren Vornamen in den Decoder. Schreibt den Morsecode dann auch von Hand auf.
+      <label class="input-label">✏️ Morsecode eures Namens:</label>
+      <textarea class="answer-box" style="min-height:50px;" placeholder="A = ·−  N = −·  …"></textarea>
+    </div>
+    <div class="task">
+      <span class="task-num">AUFGABE 1.3 – Denkt nach!</span>
+      Warum ist Morsecode nützlich, wenn man keine Schrift verwenden kann? Nennt <strong>zwei Situationen</strong>.
+      <label class="input-label">✏️ Situation 1:</label>
+      <textarea class="answer-box" style="min-height:50px;" placeholder="z.B. …"></textarea>
+      <label class="input-label">✏️ Situation 2:</label>
+      <textarea class="answer-box" style="min-height:50px;" placeholder="z.B. …"></textarea>
+    </div>
+  </div>
+
+  <div class="tip-box">Leerzeichen zwischen Buchstaben = kurze Pause. Zwischen Wörtern = Schrägstrich /.</div>
+  <button class="done-btn" id="btn-lv1" onclick="markDone('lv1',10,'badge-morse',this)" type="button">✔ Level abgeschlossen</button>
+</div>
+```
+
+  </div>
+
+  <div class="map-connector"></div>
+
+  <!-- ═══ LEVEL 2 ═══ -->
+
+  <div class="level-card easy" id="lv2">
+    <button class="level-header" onclick="toggleLevel('lv2')" type="button">
+      <div class="level-num">02</div>
+      <div class="level-icon">🔉</div>
+      <div class="level-meta">
+        <div class="level-title">Piep oder Strrrr – Morsecode entschlüsseln</div>
+        <div class="level-tags"><span class="tag tag-easy">LEICHT</span><span class="tag tag-pts">⭐ 10 Punkte</span><span class="tag tag-skill">Anwendung</span></div>
+      </div>
+      <div class="chevron" id="ch-lv2">▼</div>
+    </button>
+    <div class="level-body" id="body-lv2">
+      <div class="mission-intro">📌 <strong>Mission:</strong> Ein verschlüsselter Hinweis wurde aus dem Code-Labor gesendet! Entschlüsselt die Nachricht.</div>
+      <div class="morse-visual">−· ·− −·−· ···· / ·· −− / ·−·· ·− ···· ·−·</div>
+      <p style="text-align:center;font-size:11px;color:var(--text-dim);margin-bottom:12px;">↑ Entschlüsselt diese Nachricht (/ = neues Wort)</p>
+      <div class="task-block">
+        <span class="task-label">📋 AUFGABEN</span>
+        <div class="task">
+          <span class="task-num">AUFGABE 2.1 – Entschlüsseln</span>
+          Nutzt die Tabelle aus Level 1 oder den Decoder. Schreibt die Lösung:
+          <label class="input-label">✏️ Entschlüsselte Nachricht:</label>
+          <textarea class="answer-box" style="min-height:50px;" placeholder="Lösung: …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">AUFGABE 2.2 – Übertragungsarten vergleichen</span>
+          Morsecode kann als Ton, Licht oder Text übertragen werden. Tabelle: Übertragungsart / Vorteil / Nachteil (mind. 2 Zeilen).
+          <label class="input-label">✏️ Eure Tabelle:</label>
+          <textarea class="answer-box" placeholder="Ton: Vorteil = … / Nachteil = …&#10;Licht: Vorteil = … / Nachteil = …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">AUFGABE 2.3 – Geheimbotschaft</span>
+          Erfindet mit dem Decoder eine eigene Botschaft (4–6 Wörter) und tauscht sie mit einer anderen Gruppe.
+          <label class="input-label">✏️ Eure Botschaft (Klartext):</label>
+          <textarea class="answer-box" style="min-height:44px;" placeholder="z.B. Das Schulfest ist gerettet"></textarea>
+          <label class="input-label">✏️ Morsecode (aus dem Decoder):</label>
+          <textarea class="answer-box" style="min-height:44px;" placeholder="· · · − − − …"></textarea>
+        </div>
+      </div>
+      <div class="tip-box">Den Decoder aus Level 1 aufklappen und Text eingeben – der Morsecode erscheint sofort!</div>
+      <button class="done-btn" id="btn-lv2" onclick="markDone('lv2',10,null,this)" type="button">✔ Level abgeschlossen</button>
+    </div>
+  </div>
+
+  <div class="map-connector"></div>
+
+  <!-- ═══ LEVEL 3 ═══ -->
+
+  <div class="level-card medium" id="lv3">
+    <button class="level-header" onclick="toggleLevel('lv3')" type="button">
+      <div class="level-num">03</div>
+      <div class="level-icon">🔲</div>
+      <div class="level-meta">
+        <div class="level-title">Streifen-Geheimnisse – Der Strichcode</div>
+        <div class="level-tags"><span class="tag tag-medium">MITTEL</span><span class="tag tag-pts">⭐ 15 Punkte</span><span class="tag tag-skill">Analyse + Quiz</span></div>
+      </div>
+      <div class="chevron" id="ch-lv3">▼</div>
+    </button>
+    <div class="level-body" id="body-lv3">
+      <div class="mission-intro">📌 <strong>Mission:</strong> Im Supermarkt ist ein Produkt falsch ausgezeichnet. Erklärt, wie ein Strichcode funktioniert – und besteht das Quiz!</div>
+      <div class="barcode-visual">
+        <div class="bar" style="width:3px;height:100%"></div><div class="bar" style="width:1px;height:80%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:60%"></div><div class="bar" style="width:3px;height:100%"></div><div class="bar" style="width:1px;height:80%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:90%"></div><div class="bar" style="width:3px;height:100%"></div><div class="bar" style="width:2px;height:70%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:3px;height:85%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:2px;height:75%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:3px;height:90%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:65%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:3px;height:80%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:2px;height:90%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:3px;height:70%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:85%"></div><div class="bar" style="width:3px;height:100%"></div>
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--text-dim);margin-bottom:14px;">↑ Ein typischer EAN-13-Strichcode</p>
+
+```
+  <!-- BARCODE QUIZ -->
+  <div class="barcode-quiz">
+    <span class="dec-title">🎯 STRICHCODE-QUIZ</span>
+    <div class="quiz-question">
+      <p><strong>Frage 1:</strong> Wie viele Ziffern hat ein EAN-13-Code?</p>
+      <div class="quiz-options">
+        <label class="quiz-option"><input type="radio" name="bq1" value="a"> 8 Ziffern</label>
+        <label class="quiz-option"><input type="radio" name="bq1" value="b"> 13 Ziffern</label>
+        <label class="quiz-option"><input type="radio" name="bq1" value="c"> 16 Ziffern</label>
+        <label class="quiz-option"><input type="radio" name="bq1" value="d"> 10 Ziffern</label>
+      </div>
+      <button class="check-btn" type="button" onclick="checkQuiz('bq1','b','✅ Richtig! EAN-13 = genau 13 Stellen.','❌ Falsch. EAN-13 = 13 Ziffern – die 13 steckt sogar im Namen!')">Antwort prüfen</button>
+      <div class="quiz-feedback" id="bq1-fb"></div>
+    </div>
+    <div class="quiz-question">
+      <p><strong>Frage 2:</strong> Was verraten die ersten 2–3 Ziffern?</p>
+      <div class="quiz-options">
+        <label class="quiz-option"><input type="radio" name="bq2" value="a"> Den Preis</label>
+        <label class="quiz-option"><input type="radio" name="bq2" value="b"> Das Mindesthaltbarkeitsdatum</label>
+        <label class="quiz-option"><input type="radio" name="bq2" value="c"> Das Herkunftsland</label>
+        <label class="quiz-option"><input type="radio" name="bq2" value="d"> Die Produktkategorie</label>
+      </div>
+      <button class="check-btn" type="button" onclick="checkQuiz('bq2','c','✅ Korrekt! z.B. 40–44 = Deutschland, 90–91 = Österreich.','❌ Falsch. Die ersten Ziffern codieren das Herkunftsland.')">Antwort prüfen</button>
+      <div class="quiz-feedback" id="bq2-fb"></div>
+    </div>
+    <div class="quiz-question">
+      <p><strong>Frage 3:</strong> Wozu dient die letzte Ziffer?</p>
+      <div class="quiz-options">
+        <label class="quiz-option"><input type="radio" name="bq3" value="a"> Sie nennt den Hersteller</label>
+        <label class="quiz-option"><input type="radio" name="bq3" value="b"> Sie ist eine Prüfziffer – erkennt Fehler</label>
+        <label class="quiz-option"><input type="radio" name="bq3" value="c"> Sie zeigt das Produktionsjahr</label>
+        <label class="quiz-option"><input type="radio" name="bq3" value="d"> Sie zeigt den Preis</label>
+      </div>
+      <button class="check-btn" type="button" onclick="checkQuiz('bq3','b','✅ Super! Die Prüfziffer wird aus den anderen 12 Ziffern berechnet.','❌ Falsch. Die letzte Ziffer ist die Prüfziffer – sie erkennt Scanfehler.')">Antwort prüfen</button>
+      <div class="quiz-feedback" id="bq3-fb"></div>
+    </div>
+  </div>
+
+  <div class="task-block">
+    <span class="task-label">📋 AUFGABEN</span>
+    <div class="task">
+      <span class="task-num">AUFGABE 3.1 – Vergleich Strichcode / Morsecode</span>
+      Mind. 3 Gemeinsamkeiten und 3 Unterschiede.
+      <label class="input-label">✏️ Gemeinsamkeiten:</label>
+      <textarea class="answer-box" placeholder="1. Beide …&#10;2. …&#10;3. …"></textarea>
+      <label class="input-label">✏️ Unterschiede:</label>
+      <textarea class="answer-box" placeholder="1. Morsecode … / Strichcode …&#10;2. …&#10;3. …"></textarea>
+    </div>
+    <div class="task">
+      <span class="task-num">AUFGABE 3.2 – Scanner kaputt!</span>
+      Wie findet ihr den Preis? Zwei Möglichkeiten – eine ohne Internet!
+      <label class="input-label">✏️ Eure Antwort:</label>
+      <textarea class="answer-box" placeholder="Möglichkeit 1: …&#10;Möglichkeit 2 (ohne Internet): …"></textarea>
+    </div>
+  </div>
+
+  <div class="tip-box">40–44 = Deutschland · 90–91 = Österreich · 76 = Schweiz</div>
+  <button class="done-btn" id="btn-lv3" onclick="markDone('lv3',15,'badge-barcode',this)" type="button">✔ Level abgeschlossen</button>
+</div>
+```
+
+  </div>
+
+  <div class="map-connector"></div>
+
+  <!-- ═══ LEVEL 4 ═══ -->
+
+  <div class="level-card medium" id="lv4">
+    <button class="level-header" onclick="toggleLevel('lv4')" type="button">
+      <div class="level-num">04</div>
+      <div class="level-icon">🥚</div>
+      <div class="level-meta">
+        <div class="level-title">Eiercode-Rätsel – Baut euren eigenen Code!</div>
+        <div class="level-tags"><span class="tag tag-medium">MITTEL</span><span class="tag tag-pts">⭐ 15 Punkte</span><span class="tag tag-skill">Transfer + Puzzle</span></div>
+      </div>
+      <div class="chevron" id="ch-lv4">▼</div>
+    </button>
+    <div class="level-body" id="body-lv4">
+      <div class="mission-intro">📌 <strong>Mission:</strong> Das Frühstücks-Komitee braucht Eier! Lernt den Eiercode lesen – und baut selbst einen mit dem interaktiven Baukasten!</div>
+
+```
+  <div class="egg-visual">
+    <div class="egg-code">
+      <span class="c1">1</span><span class="c2">-</span><span class="c3">DE</span><span class="c2">-</span><span class="c4">BY</span><span class="c2">-</span><span class="c5">078</span><span class="c2">-</span><span class="c6">01</span>
+    </div>
+    <div class="egg-legend">
+      <span style="color:#ef4444">1 = Haltungsform</span>
+      <span style="color:#10b981">DE = Land</span>
+      <span style="color:#00d4ff">BY = Bundesland</span>
+      <span style="color:#7c3aed">078 = Betrieb</span>
+      <span style="color:#f97316">01 = Stall</span>
+    </div>
+  </div>
+
+  <!-- EGG CODE BUILDER -->
+  <div class="egg-puzzle">
+    <span class="dec-title">🥚 EIERCODE-BAUKASTEN</span>
+    <div class="egg-builder">
+      <div class="egg-slot">
+        <label>Haltung</label>
+        <select class="egg-select" id="es-haltung" onchange="updateEggDisplay()">
+          <option value="0">0 – Bio</option>
+          <option value="1" selected>1 – Freiland</option>
+          <option value="2">2 – Boden</option>
+          <option value="3">3 – Käfig</option>
+        </select>
+      </div>
+      <div class="egg-sep">–</div>
+      <div class="egg-slot">
+        <label>Land</label>
+        <select class="egg-select" id="es-land" onchange="updateEggDisplay()">
+          <option value="DE">DE 🇩🇪</option>
+          <option value="AT">AT 🇦🇹</option>
+          <option value="CH">CH 🇨🇭</option>
+          <option value="FR">FR 🇫🇷</option>
+          <option value="NL">NL 🇳🇱</option>
+        </select>
+      </div>
+      <div class="egg-sep">–</div>
+      <div class="egg-slot">
+        <label>Bundesland</label>
+        <select class="egg-select" id="es-bl" onchange="updateEggDisplay()">
+          <option value="BY">BY Bayern</option>
+          <option value="BW">BW Baden-W.</option>
+          <option value="NI">NI Niedersachs.</option>
+          <option value="NW">NW NRW</option>
+          <option value="HE">HE Hessen</option>
+        </select>
+      </div>
+      <div class="egg-sep">–</div>
+      <div class="egg-slot">
+        <label>Betrieb</label>
+        <select class="egg-select" id="es-betrieb" onchange="updateEggDisplay()">
+          <option value="001">001</option>
+          <option value="042">042</option>
+          <option value="078" selected>078</option>
+          <option value="123">123</option>
+          <option value="999">999</option>
+        </select>
+      </div>
+      <div class="egg-sep">–</div>
+      <div class="egg-slot">
+        <label>Stall</label>
+        <select class="egg-select" id="es-stall" onchange="updateEggDisplay()">
+          <option value="01" selected>01</option>
+          <option value="02">02</option>
+          <option value="03">03</option>
+        </select>
+      </div>
+    </div>
+    <div class="egg-display" id="egg-display">1-DE-BY-078-01</div>
+    <div class="egg-meaning" id="egg-meaning">Freilandhaltung 🐔 · Deutschland 🇩🇪 · Bayern · Betrieb 078 · Stall 01</div>
+    <button class="reveal-btn" type="button" onclick="revealEggInfo()">🔍 Was bedeutet mein Code genau?</button>
+    <div class="egg-explain" id="egg-explain"></div>
+  </div>
+
+  <div class="task-block">
+    <span class="task-label">📋 AUFGABEN</span>
+    <div class="task">
+      <span class="task-num">AUFGABE 4.1 – Haltungsformen Tabelle</span>
+      Alle 4 Haltungsformen (0–3) mit Bedeutung. Welche wählt ihr für das Schulfest – und warum?
+      <label class="input-label">✏️ Tabelle + Begründung:</label>
+      <textarea class="answer-box" placeholder="0 = Bio-Haltung: …&#10;1 = Freiland: …&#10;2 = Boden: …&#10;3 = Käfig: …&#10;&#10;Wir wählen … weil …"></textarea>
+    </div>
+    <div class="task">
+      <span class="task-num">AUFGABE 4.2 – Drei-Code-Vergleich</span>
+      Morse / Strichcode / Eiercode: Was wird codiert? Wer liest? Warum nützlich?
+      <label class="input-label">✏️ Tabelle (3 Zeilen, 4 Spalten):</label>
+      <textarea class="answer-box" placeholder="Morsecode: Was? … / Wer? … / Warum? …&#10;Strichcode: …&#10;Eiercode: …"></textarea>
+    </div>
+    <div class="task">
+      <span class="task-num">AUFGABE 4.3 – Kritisch denken</span>
+      Kann man sich auf den Eiercode wirklich verlassen? Wer kontrolliert, ob die Angaben stimmen? Begründete Meinung (3–5 Sätze).
+      <label class="input-label">✏️ Eure Stellungnahme:</label>
+      <textarea class="answer-box" placeholder="Wir denken, dass …"></textarea>
+    </div>
+  </div>
+
+  <div class="tip-box">Haltungsform 0 = beste Tierhaltung. In Deutschland ist Käfighaltung (3) verboten – Importeier können aber Kennzeichnung 3 tragen.</div>
+  <button class="done-btn" id="btn-lv4" onclick="markDone('lv4',15,'badge-egg',this)" type="button">✔ Level abgeschlossen</button>
+</div>
+```
+
+  </div>
+
+  <div class="map-connector"></div>
+
+  <!-- ═══ LEVEL 5 ═══ -->
+
+  <div class="level-card hard" id="lv5">
+    <button class="level-header" onclick="toggleLevel('lv5')" type="button">
+      <div class="level-num">05</div>
+      <div class="level-icon">🛠️</div>
+      <div class="level-meta">
+        <div class="level-title">Eigener Code – Ihr seid die Entwickler!</div>
+        <div class="level-tags"><span class="tag tag-hard">SCHWER</span><span class="tag tag-pts">⭐ 20 Punkte</span><span class="tag tag-skill">Kreation</span></div>
+      </div>
+      <div class="chevron" id="ch-lv5">▼</div>
+    </button>
+    <div class="level-body" id="body-lv5">
+      <div class="mission-intro">📌 <strong>Mission:</strong> Das Code-Labor braucht ein neues System! Ihr entwickelt euren eigenen Code.</div>
+      <div class="task-block">
+        <span class="task-label">📋 AUFGABEN</span>
+        <div class="task">
+          <span class="task-num">AUFGABE 5.1 – Code-System erfinden</span>
+          Mind. 10 Buchstaben, einfache Zeichen, eigener Name.
+          <label class="input-label">✏️ Name eures Codes:</label>
+          <textarea class="answer-box" style="min-height:44px;" placeholder="z.B. AgentCode 3000 …"></textarea>
+          <label class="input-label">✏️ Code-Tabelle (Buchstabe → Zeichen, mind. 10):</label>
+          <textarea class="answer-box" placeholder="A = ○  B = □  C = △  D = ◇ …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">AUFGABE 5.2 – Botschaft verschlüsseln</span>
+          Verschlüsselt: <em style="color:var(--gold)">"Das Schulfest ist gerettet!"</em>
+          <label class="input-label">✏️ Verschlüsselte Botschaft:</label>
+          <textarea class="answer-box" placeholder="D = … / A = … / S = … …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">AUFGABE 5.3 – Reflexion</span>
+          Vergleich mit Morsecode: Was ist besser? Was schwieriger? Wofür eignet er sich?
+          <label class="input-label">✏️ Reflexion (4–6 Sätze):</label>
+          <textarea class="answer-box" placeholder="Unser Code ist … Allerdings … Am besten eignet er sich für …"></textarea>
+        </div>
+      </div>
+      <div class="tip-box">Gute Codes: eindeutig (1 Zeichen = 1 Buchstabe) und schnell zu schreiben.</div>
+      <button class="done-btn" id="btn-lv5" onclick="markDone('lv5',20,'badge-creator',this)" type="button">✔ Level abgeschlossen</button>
+    </div>
+  </div>
+
+  <div class="map-connector"></div>
+
+  <!-- ═══ LEVEL 6 ═══ -->
+
+  <div class="level-card hard" id="lv6">
+    <button class="level-header" onclick="toggleLevel('lv6')" type="button">
+      <div class="level-num">06</div>
+      <div class="level-icon">💬</div>
+      <div class="level-meta">
+        <div class="level-title">Gruppen-Gipfel – Austausch &amp; Präsentation</div>
+        <div class="level-tags"><span class="tag tag-hard">SCHWER</span><span class="tag tag-pts">⭐ 10 Punkte</span><span class="tag tag-skill">Kommunikation</span></div>
+      </div>
+      <div class="chevron" id="ch-lv6">▼</div>
+    </button>
+    <div class="level-body" id="body-lv6">
+      <div class="mission-intro">📌 <strong>Mission:</strong> Alle Gruppen treffen sich zum Austausch. Euer Präsentator hat 3 Minuten!</div>
+      <div class="task-block">
+        <span class="task-label">📋 AUFGABEN</span>
+        <div class="task">
+          <span class="task-num">AUFGABE 6.1 – Vorbereitung</span>
+          Überraschendste Erkenntnis? Schwierigste Aufgabe? Was hat euer Code gemein mit echten Codes?
+          <label class="input-label">✏️ 3 Stichpunkte:</label>
+          <textarea class="answer-box" placeholder="1. …&#10;2. …&#10;3. …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">AUFGABE 6.2 – Code-Tausch</span>
+          Tauscht eure Botschaft (Level 5) mit einer anderen Gruppe. Wie lange zum Entschlüsseln?
+          <label class="input-label">✏️ Ergebnis:</label>
+          <textarea class="answer-box" style="min-height:50px;" placeholder="Botschaft: … / Zeit: … Minuten"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">AUFGABE 6.3 – Präsentation vorbereiten</span>
+          <label class="input-label">✏️ Kernpunkte für 3 Minuten:</label>
+          <textarea class="answer-box" placeholder="1. Unser Code …&#10;2. Code-Vergleich …&#10;3. Offene Frage …"></textarea>
+        </div>
+      </div>
+      <button class="done-btn" id="btn-lv6" onclick="markDone('lv6',10,null,this)" type="button">✔ Level abgeschlossen</button>
+    </div>
+  </div>
+
+  <div class="map-connector"></div>
+
+  <!-- ═══ BOSS ═══ -->
+
+  <div class="level-card boss boss-glow" id="lv-boss">
+    <button class="level-header" onclick="toggleLevel('lv-boss')" type="button">
+      <div class="level-num" style="font-size:12px;">BOSS</div>
+      <div class="level-icon">⚡</div>
+      <div class="level-meta">
+        <div class="level-title">Boss-Level – Reflexion &amp; Bewertung der Code-Welt</div>
+        <div class="level-tags"><span class="tag tag-boss">BOSS</span><span class="tag tag-pts">⭐ 15 Punkte</span><span class="tag tag-skill">Reflexion · Urteil</span></div>
+      </div>
+      <div class="chevron" id="ch-lv-boss">▼</div>
+    </button>
+    <div class="level-body" id="body-lv-boss">
+      <div class="mission-intro">⚡ <strong>Finaler Einsatz:</strong> Das Schulfest ist gerettet! Beweist, dass ihr wirklich über Codes nachdenken könnt.</div>
+      <div class="task-block">
+        <span class="task-label">📋 BOSS-AUFGABEN</span>
+        <div class="task">
+          <span class="task-num">BOSS 1 – Eigene Definition</span>
+          Was haben alle Codes gemeinsam? Eigene Definition von „Code" in 2–3 Sätzen – ohne Wikipedia!
+          <label class="input-label">✏️ Eure Definition:</label>
+          <textarea class="answer-box" placeholder="Ein Code ist … weil … Ein Code unterscheidet sich von normaler Sprache dadurch, dass …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">BOSS 2 – Macht &amp; Kontrolle</span>
+          Je ein Beispiel, wo ein Code <em>nützlich</em> ist und wo er <em>problematisch</em> sein könnte. Begründete Stellungnahme (5–8 Sätze).
+          <label class="input-label">✏️ Eure Stellungnahme:</label>
+          <textarea class="answer-box" placeholder="Codes sind nützlich, wenn … Problematisch wird es, wenn … Wir denken, dass …"></textarea>
+        </div>
+        <div class="task">
+          <span class="task-num">BOSS 3 – Zukunftsvision</span>
+          Erfindet einen Code für die Zukunft! Was könnte in 50 Jahren codiert sein? (3–5 Sätze)
+          <label class="input-label">✏️ Euer Zukunfts-Code:</label>
+          <textarea class="answer-box" placeholder="In 50 Jahren könnte man … codieren. Dieser Code würde … funktionieren …"></textarea>
+        </div>
+      </div>
+      <div class="tip-box">Ein guter Agenten-Abschluss zeigt, dass ihr über die gesellschaftliche Wirkung von Codes nachdenken könnt!</div>
+      <button class="done-btn" id="btn-boss" onclick="markDone('lv-boss',15,'badge-boss',this)" type="button">⚡ Boss besiegt!</button>
+    </div>
+  </div>
+
+  <!-- NEBENMISSIONEN -->
+
+  <div style="margin-top:28px;">
+    <div class="section-label">🛸 Nebenmissionen – Freiwillig für schnelle Gruppen</div>
+
+```
+<div class="level-card side" id="lv-s1">
+  <button class="level-header" onclick="toggleLevel('lv-s1')" type="button">
+    <div class="level-num">★</div>
+    <div class="level-icon">📱</div>
+    <div class="level-meta">
+      <div class="level-title">Nebenmission A – QR-Code vs. Strichcode</div>
+      <div class="level-tags"><span class="tag tag-side">BONUS</span><span class="tag tag-skill">Vergleich</span></div>
+    </div>
+    <div class="chevron" id="ch-lv-s1">▼</div>
+  </button>
+  <div class="level-body" id="body-lv-s1">
+    <div class="side-mission-note">🛸 Kein Pflicht-Level – aber extra interessant!</div>
+    <div class="task">
+      <span class="task-num">NEBENMISSION A</span>
+      QR-Code vs. EAN-13: Wie viel Information passt rein? Warum setzen immer mehr Orte auf QR-Codes? Könnte er den Strichcode ersetzen?
+      <label class="input-label">✏️ Eure Analyse:</label>
+      <textarea class="answer-box" placeholder="QR-Code kann … speichern, Strichcode nur …&#10;QR-Codes werden häufiger, weil …&#10;Wir glauben, dass …"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="level-card side" id="lv-s2">
+  <button class="level-header" onclick="toggleLevel('lv-s2')" type="button">
+    <div class="level-num">★</div>
+    <div class="level-icon">🕵️</div>
+    <div class="level-meta">
+      <div class="level-title">Nebenmission B – Code-Jagd in der Schule</div>
+      <div class="level-tags"><span class="tag tag-side">BONUS</span><span class="tag tag-skill">Beobachtung</span></div>
+    </div>
+    <div class="chevron" id="ch-lv-s2">▼</div>
+  </button>
+  <div class="level-body" id="body-lv-s2">
+    <div class="side-mission-note">🛸 Scharfe Augen gefragt!</div>
+    <div class="task">
+      <span class="task-num">NEBENMISSION B</span>
+      Sucht im Schulgebäude nach Codes! Mind. 4 Funde: Was wird codiert? Wer liest ihn? Warum?
+      <label class="input-label">✏️ Eure Code-Galerie:</label>
+      <textarea class="answer-box" placeholder="1. Strichcode im Buch: codiert … / gelesen von … / nützlich weil …&#10;2. …&#10;3. …&#10;4. …"></textarea>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- COMPLETION BANNER -->
+
+  <div class="completion-banner" id="completion-banner">
+    <div class="star-row">⭐ ⭐ ⭐</div>
+    <h2>🎉 Mission erfüllt! Schulfest gerettet!</h2>
+    <p style="color:var(--text-dim);margin-top:8px;">Ihr seid jetzt offizielle <strong style="color:var(--gold)">Code Agency Top-Agents!</strong></p>
+    <p style="color:var(--text-dim);margin-top:6px;font-size:12px;">Alle Level abgeschlossen · Geheimcodes gemeistert · Zukunft gesichert</p>
+    <p style="margin-top:16px;font-family:var(--font-display);color:var(--accent);font-size:11px;letter-spacing:3px;">··· − ··· ·  ·· ···− − / ···  −  ·−−··  ···  − / −−·  ·  ·−  ·−·  ·−  ·−··</p>
+  </div>
+
+  <div style="height:60px;"></div>
+</div>
+
+<script>
+// ════════ MORSE DATA ════════
+var MORSE = {
+  A:'·−',B:'−···',C:'−·−·',D:'−··',E:'·',F:'··−·',
+  G:'−−·',H:'····',I:'··',J:'·−−−',K:'−·−',L:'·−··',
+  M:'−−',N:'−·',O:'−−−',P:'·−−·',Q:'−−·−',R:'·−·',
+  S:'···',T:'−',U:'··−',V:'···−',W:'·−−',X:'−··−',
+  Y:'−·−−',Z:'−−··',
+  '0':'−−−−−','1':'·−−−−','2':'··−−−','3':'···−−',
+  '4':'····−','5':'·····','6':'−····','7':'−−···',
+  '8':'−−−··','9':'−−−−·'
+};
+var MORSE_REV = {};
+for (var k in MORSE) { MORSE_REV[MORSE[k]] = k; }
+
+// Render Morse table
+(function(){
+  var el = document.getElementById('morse-ref');
+  if (!el) return;
+  var keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  var html = '';
+  for (var i = 0; i < keys.length; i++) {
+    html += '<div class="morse-cell"><div class="letter">' + keys[i] + '</div><div class="code">' + (MORSE[keys[i]] || '?') + '</div></div>';
+  }
+  el.innerHTML = html;
+})();
+
+function encodeMorse() {
+  var el = document.getElementById('morse-input');
+  var out = document.getElementById('morse-output');
+  if (!el || !out) return;
+  var txt = el.value.toUpperCase();
+  var result = [];
+  for (var i = 0; i < txt.length; i++) {
+    var c = txt[i];
+    if (c === ' ') { result.push('/'); }
+    else { result.push(MORSE[c] || '?'); }
+  }
+  out.textContent = result.join('  ') || '· − (tippe etwas)';
+}
+
+function decodeMorse() {
+  var el = document.getElementById('decode-input');
+  var out = document.getElementById('decode-output');
+  if (!el || !out) return;
+  var txt = el.value.trim();
+  if (!txt) { out.textContent = '?'; return; }
+  var words = txt.split('/');
+  var decoded = [];
+  for (var w = 0; w < words.length; w++) {
+    var codes = words[w].trim().split(/\s+/);
+    var word = '';
+    for (var c = 0; c < codes.length; c++) {
+      var code = codes[c].trim();
+      if (code) word += (MORSE_REV[code] || '?');
+    }
+    decoded.push(word);
+  }
+  out.textContent = decoded.join(' ') || '?';
+}
+
+// ════════ BARCODE QUIZ ════════
+function checkQuiz(name, correct, msgOk, msgFail) {
+  var sel = document.querySelector('input[name="' + name + '"]:checked');
+  var fb = document.getElementById(name + '-fb');
+  if (!fb) return;
+  if (!sel) {
+    fb.style.display = 'block';
+    fb.className = 'quiz-feedback wrong';
+    fb.textContent = '⚠️ Bitte erst eine Antwort auswählen!';
+    return;
+  }
+  fb.style.display = 'block';
+  if (sel.value === correct) {
+    fb.className = 'quiz-feedback correct';
+    fb.textContent = msgOk;
+  } else {
+    fb.className = 'quiz-feedback wrong';
+    fb.textContent = msgFail;
+  }
+}
+
+// ════════ EGG CODE BUILDER ════════
+var HALTUNG_INFO = {
+  '0': { label:'Bio-Haltung 🌿', info:'Die Hühner leben im Freien, haben Auslauf und werden mit Bio-Futter ernährt. Strengste Tierschutzregeln.' },
+  '1': { label:'Freilandhaltung 🐔', info:'Hühner haben tagsüber Zugang ins Freie. Weniger streng als Bio, aber die Tiere kommen raus.' },
+  '2': { label:'Bodenhaltung 🏠', info:'Hühner leben in Ställen ohne Käfig, aber ohne Außenbereich. In Deutschland weit verbreitet.' },
+  '3': { label:'Käfighaltung ⚠️', info:'In Deutschland verboten – in manchen EU-Ländern noch erlaubt. Importeier dürfen aber verkauft werden.' }
+};
+var LAND_INFO = { DE:'Deutschland 🇩🇪', AT:'Österreich 🇦🇹', CH:'Schweiz 🇨🇭', FR:'Frankreich 🇫🇷', NL:'Niederlande 🇳🇱' };
+var BL_INFO   = { BY:'Bayern', BW:'Baden-Württemberg', NI:'Niedersachsen', NW:'Nordrhein-Westfalen', HE:'Hessen' };
+
+function updateEggDisplay() {
+  var h  = document.getElementById('es-haltung').value;
+  var l  = document.getElementById('es-land').value;
+  var bl = document.getElementById('es-bl').value;
+  var be = document.getElementById('es-betrieb').value;
+  var s  = document.getElementById('es-stall').value;
+  document.getElementById('egg-display').textContent = h + '-' + l + '-' + bl + '-' + be + '-' + s;
+  document.getElementById('egg-meaning').textContent = HALTUNG_INFO[h].label + ' · ' + LAND_INFO[l] + ' · ' + BL_INFO[bl] + ' · Betrieb ' + be + ' · Stall ' + s;
+  document.getElementById('egg-explain').style.display = 'none';
+}
+
+function revealEggInfo() {
+  var h  = document.getElementById('es-haltung').value;
+  var l  = document.getElementById('es-land').value;
+  var bl = document.getElementById('es-bl').value;
+  var be = document.getElementById('es-betrieb').value;
+  var s  = document.getElementById('es-stall').value;
+  var el = document.getElementById('egg-explain');
+  el.style.display = 'block';
+  el.innerHTML =
+    '<strong>Euer Code: ' + h + '-' + l + '-' + bl + '-' + be + '-' + s + '</strong><br><br>' +
+    '🐔 <strong>Haltungsform ' + h + ' – ' + HALTUNG_INFO[h].label + ':</strong> ' + HALTUNG_INFO[h].info + '<br><br>' +
+    '🌍 <strong>Herkunftsland:</strong> ' + LAND_INFO[l] + '<br>' +
+    '📍 <strong>Bundesland:</strong> ' + BL_INFO[bl] + '<br>' +
+    '🏭 <strong>Betriebsnummer:</strong> ' + be + '<br>' +
+    '🏠 <strong>Stall:</strong> ' + s;
+}
+
+// ════════ LEVEL TOGGLE (Moodle-safe: max-height Trick) ════════
+function toggleLevel(id) {
+  var body    = document.getElementById('body-' + id);
+  var chevron = document.getElementById('ch-' + id);
+  if (!body) return;
+  if (body.classList.contains('open')) {
+    body.classList.remove('open');
+    if (chevron) chevron.textContent = '▼';
+  } else {
+    body.classList.add('open');
+    if (chevron) chevron.textContent = '▲';
+  }
+}
+
+// ════════ POINTS SYSTEM ════════
+var earnedLevels = {};
+var totalPoints  = 0;
+
+function markDone(id, pts, badge, btn) {
+  if (earnedLevels[id]) return;
+  earnedLevels[id] = pts;
+  totalPoints += pts;
+  btn.classList.add('completed');
+  btn.textContent = '✅ Erledigt!';
+  btn.disabled = true;
+  var ptsEl = document.getElementById('pts-display');
+  if (ptsEl) ptsEl.textContent = totalPoints;
+  var fill = document.getElementById('progress-fill');
+  if (fill) fill.style.width = Math.min(100, (totalPoints / 95) * 100) + '%';
+  if (badge) {
+    var b = document.getElementById(badge);
+    if (b) b.classList.add('earned');
+  }
+  var main = ['lv1','lv2','lv3','lv4','lv5','lv6','lv-boss'];
+  var allDone = true;
+  for (var i = 0; i < main.length; i++) {
+    if (!earnedLevels[main[i]]) { allDone = false; break; }
+  }
+  if (allDone) {
+    var banner = document.getElementById('completion-banner');
+    if (banner) {
+      banner.style.display = 'block';
+      banner.scrollIntoView({ behavior:'smooth' });
+    }
+  }
+}
+</script>
+
+</body>
+</html>
