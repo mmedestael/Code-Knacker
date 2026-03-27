@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CODE AGENCY – Lernlandkarte</title>
+<style>
+:root{
+  --font-display:"Courier New",Courier,monospace;
+  --font-body:"Segoe UI",Arial,Helvetica,sans-serif;
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e3a5f;
+  --accent:#00d4ff;--accent2:#7c3aed;--gold:#f59e0b;--red:#ef4444;
+  --text:#e2e8f0;--text-dim:#94a3b8;
+  --easy:#10b981;--medium:#f59e0b;--hard:#ef4444;--boss:#7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;}
+.container{max-width:920px;margin:0 auto;padding:20px;}
+
+/* ── START SCREEN ── */
+#start-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0d1a2e 0%,#0a0e1a 70%);}
+.start-box{background:var(--surface);border:1px solid var(--accent);border-radius:16px;padding:48px 40px;text-align:center;max-width:500px;width:90%;box-shadow:0 0 60px rgba(0,212,255,.15);}
+.start-box h1{font-family:var(--font-display);font-size:clamp(22px,6vw,36px);font-weight:700;background:linear-gradient(135deg,#00d4ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.start-box .sub{color:var(--text-dim);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;}
+.start-label{font-size:12px;color:var(--text-dim);text-align:left;margin-bottom:6px;font-family:var(--font-display);letter-spacing:1px;}
+.start-input{width:100%;background:#060a12;border:1px solid var(--border);border-radius:8px;padding:14px 16px;color:var(--text);font-family:var(--font-display);font-size:18px;letter-spacing:4px;text-align:center;text-transform:uppercase;margin-bottom:6px;}
+.start-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.1);}
+.start-hint{font-size:11px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;}
+.start-btn{width:100%;background:linear-gradient(135deg,var(--accent),#0099bb);border:none;border-radius:8px;padding:14px;color:#000;font-family:var(--font-display);font-size:12px;letter-spacing:3px;cursor:pointer;font-weight:700;text-transform:uppercase;margin-bottom:12px;}
+.start-btn:hover{opacity:.9;}
+.start-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text-dim);font-size:11px;}
+.start-divider::before,.start-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.load-btn{width:100%;background:transparent;border:1px solid var(--accent2);border-radius:8px;padding:12px;color:var(--accent2);font-family:var(--font-display);font-size:11px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;}
+.load-btn:hover{background:#1e0a3c;}
+.start-err{color:var(--red);font-size:12px;margin-top:8px;display:none;}
+
+/* ── SAVE BAR ── */
+.save-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:16px;}
+.save-bar .gname{font-family:var(--font-display);color:var(--accent);font-size:12px;letter-spacing:2px;}
+.save-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.sbtn{background:transparent;border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text-dim);font-family:var(--font-display);font-size:10px;letter-spacing:1px;cursor:pointer;white-space:nowrap;}
+.sbtn:hover{border-color:var(--accent);color:var(--accent);}
+.sbtn.green{border-color:var(--easy);color:var(--easy);}
+.sbtn.green:hover{background:#052e16;}
+.sbtn.purple{border-color:var(--accent2);color:var(--accent2);}
+.sbtn.purple:hover{background:#1e0a3c;}
+.sbtn.print{border-color:var(--gold);color:var(--gold);}
+.sbtn.print:hover{background:#1a1500;}
+
+/* ── SAVE INDICATOR ── */
+.save-indicator{position:fixed;bottom:20px;right:20px;background:#052e16;border:1px solid var(--easy);border-radius:8px;padding:8px 14px;font-family:var(--font-display);font-size:10px;letter-spacing:2px;color:var(--easy);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+.save-indicator.show{opacity:1;}
+
+/* ── LOAD OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.overlay-box{background:var(--surface);border:1px solid var(--accent2);border-radius:12px;padding:32px;max-width:440px;width:90%;text-align:center;}
+.overlay-box h3{font-family:var(--font-display);color:var(--accent2);font-size:14px;letter-spacing:2px;margin-bottom:16px;}
+.overlay-box p{font-size:13px;color:var(--text-dim);margin-bottom:20px;line-height:1.6;}
+.file-drop{border:2px dashed var(--accent2);border-radius:8px;padding:28px;margin-bottom:16px;cursor:pointer;position:relative;}
+.file-drop:hover{background:#1e0a3c22;}
+.file-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.file-drop .icon{font-size:32px;margin-bottom:8px;}
+.file-drop p{font-size:12px;color:var(--text-dim);margin:0;}
+.overlay-close{background:transparent;border:1px solid var(--border);border-radius:6px;padding:8px 20px;color:var(--text-dim);font-family:var(--font-display);font-size:10px;cursor:pointer;}
+
+/* ── MAIN ── */
+#main-app{display:none;}
+.agency-badge{display:inline-block;background:linear-gradient(135deg,#00d4ff22,#7c3aed22);border:1px solid var(--accent);border-radius:4px;padding:4px 16px;font-family:var(--font-display);font-size:11px;letter-spacing:4px;color:var(--accent);margin-bottom:16px;}
+.header{text-align:center;padding:36px 20px 26px;}
+.header h1{font-family:var(--font-display);font-size:clamp(24px,6vw,46px);font-weight:700;background:linear-gradient(135deg,#00d4ff,#7c3aed,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:8px;}
+.header .subtitle{color:var(--text-dim);font-size:13px;letter-spacing:2px;text-transform:uppercase;}
+
+.story-box{background:linear-gradient(135deg,#0a1628,#111827);border:1px solid var(--accent);border-left:4px solid var(--accent);border-radius:8px;padding:20px 24px;margin-bottom:24px;position:relative;overflow:hidden;}
+.story-box::before{content:'📡';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:56px;opacity:.07;}
+.story-box .label{font-family:var(--font-display);font-size:10px;letter-spacing:3px;color:var(--accent);margin-bottom:8px;}
+.story-box p{color:var(--text);line-height:1.7;font-size:14px;}
+.story-box strong{color:var(--accent);}
+
+.progress-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:24px;}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.progress-header span{font-family:var(--font-display);font-size:10px;letter-spacing:2px;color:var(--text-dim);}
+.progress-header .pts{color:var(--gold);font-weight:700;}
+.progress-bar-bg{background:#1e293b;border-radius:100px;height:10px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:100px;width:0%;transition:width .6s ease;}
+.badges{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.badge{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--text-dim);transition:all .3s;}
+.badge.earned{border-color:var(--gold);color:var(--gold);background:#1a1500;}
+
+.roles-box{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.role-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.role-card .icon{font-size:24px;margin-bottom:6px;}
+.role-card .role-name{font-family:var(--font-display);font-size:10px;letter-spacing:1px;color:var(--accent);margin-bottom:4px;}
+.role-card .role-desc{font-size:11px;color:var(--text-dim);line-height:1.4;}
+
+.section-label{font-family:var(--font-display);font-size:10px;letter-spacing:4px;color:var(--text-dim);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.level-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.level-card.easy{border-left:4px solid var(--easy);}
+.level-card.medium{border-left:4px solid var(--medium);}
+.level-card.hard{border-left:4px solid var(--hard);}
+.level-card.boss{border-left:4px solid var(--boss);border-color:var(--boss);}
+.level-card.side{border-left:4px solid var(--accent);border-style:dashed;}
+.level-header{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;user-select:none;-webkit-user-select:none;background:transparent;border:none;width:100%;text-align:left;color:var(--text);}
+.level-header:hover{background:rgba(255,255,255,.025);}
+.level-num{font-family:var(--font-display);font-size:20px;font-weight:700;min-width:42px;text-align:center;line-height:1;}
+.easy .level-num{color:var(--easy);}
+.medium .level-num{color:var(--medium);}
+.hard .level-num{color:var(--hard);}
+.boss .level-num{color:var(--boss);font-size:12px;}
+.side .level-num{color:var(--accent);font-size:14px;}
+.level-meta{flex:1;}
+.level-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.level-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.tag{font-size:10px;padding:2px 7px;border-radius:4px;font-family:var(--font-display);letter-spacing:1px;}
+.tag-easy{background:#052e16;color:var(--easy);}
+.tag-medium{background:#1c1002;color:var(--medium);}
+.tag-hard{background:#1f0a0a;color:var(--hard);}
+.tag-boss{background:#1e0a3c;color:var(--boss);}
+.tag-side{background:#001829;color:var(--accent);}
+.tag-pts{background:#1a1500;color:var(--gold);}
+.tag-skill{background:#0f172a;color:var(--text-dim);}
+.level-icon{font-size:24px;}
+.chevron{font-size:11px;color:var(--text-dim);min-width:16px;text-align:center;}
+.level-body{overflow:hidden;max-height:0;padding:0 18px;border-top:0px solid var(--border);transition:max-height .35s ease,padding .25s ease;}
+.level-body.open{max-height:9999px;padding:0 18px 22px;border-top:1px solid var(--border);}
+
+.mission-intro{background:var(--surface2);border-radius:8px;padding:13px 16px;margin:14px 0;font-size:13px;color:var(--text-dim);line-height:1.7;border-left:3px solid var(--accent);}
+.mission-intro strong{color:var(--text);}
+.task-block{margin-top:14px;}
+.task-label{font-family:var(--font-display);font-size:10px;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;display:block;}
+.task{background:#0a0e1a;border:1px solid var(--border);border-radius:8px;padding:13px 15px;margin-bottom:10px;font-size:13px;line-height:1.7;color:var(--text);}
+.task .task-num{font-family:var(--font-display);color:var(--accent);font-size:10px;margin-bottom:6px;display:block;}
+.task em{color:var(--accent);font-style:normal;}
+.task strong{color:var(--gold);}
+.input-label{font-size:11px;color:var(--text-dim);margin-bottom:4px;margin-top:10px;display:block;}
+.answer-box{width:100%;background:#060a12;border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:13px;resize:vertical;min-height:70px;margin-top:4px;display:block;}
+.answer-box:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,212,255,.1);}
+.answer-box::placeholder{color:#334155;}
+
+.morse-decoder{background:#030810;border:1px solid var(--accent);border-radius:10px;padding:16px;margin:14px 0;}
+.dec-title{font-family:var(--font-display);font-size:10px;letter-spacing:3px;color:var(--accent);margin-bottom:10px;display:block;}
+.dec-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.dec-input{flex:1;min-width:150px;background:#060a12;border:1px solid var(--border);border-radius:6px;padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:13px;}
+.dec-input:focus{outline:none;border-color:var(--accent);}
+.dec-output{background:#001020;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:var(--font-display);font-size:16px;letter-spacing:4px;color:var(--accent);min-height:44px;word-break:break-all;}
+.dec-hint{font-size:11px;color:var(--text-dim);margin-top:6px;}
+.morse-table-small{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:5px;margin:10px 0;}
+.morse-cell{background:#001020;border:1px solid var(--border);border-radius:5px;padding:5px 7px;text-align:center;}
+.morse-cell .letter{font-family:var(--font-display);font-size:13px;color:var(--text);font-weight:700;}
+.morse-cell .code{font-family:var(--font-display);font-size:12px;color:var(--accent);letter-spacing:3px;margin-top:2px;}
+
+.barcode-quiz{background:#030810;border:1px solid var(--medium);border-radius:10px;padding:16px;margin:14px 0;}
+.barcode-quiz .dec-title{color:var(--medium);}
+.quiz-question{background:#0a0e1a;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:13px;}
+.quiz-question p{margin-bottom:8px;line-height:1.6;}
+.quiz-options{display:flex;flex-direction:column;gap:6px;}
+.quiz-option{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d1424;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:13px;}
+.quiz-option:hover{border-color:var(--medium);}
+.check-btn{margin-top:10px;background:var(--medium);border:none;border-radius:6px;padding:9px 18px;color:#000;font-family:var(--font-display);font-size:10px;letter-spacing:1px;cursor:pointer;font-weight:700;}
+.quiz-feedback{margin-top:10px;padding:10px 14px;border-radius:6px;font-size:13px;display:none;}
+.quiz-feedback.correct{background:#052e16;border:1px solid var(--easy);color:var(--easy);}
+.quiz-feedback.wrong{background:#1f0a0a;border:1px solid var(--red);color:var(--red);}
+
+.egg-puzzle{background:#030810;border:1px solid var(--easy);border-radius:10px;padding:16px;margin:14px 0;}
+.egg-puzzle .dec-title{color:var(--easy);}
+.egg-builder{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;align-items:flex-end;}
+.egg-slot{display:flex;flex-direction:column;gap:4px;}
+.egg-slot label{font-size:10px;color:var(--text-dim);font-family:var(--font-display);}
+.egg-select{background:#001020;border:1px solid var(--border);border-radius:6px;padding:7px 9px;color:var(--text);font-family:var(--font-body);font-size:13px;cursor:pointer;}
+.egg-sep{font-size:20px;color:var(--text-dim);padding-bottom:2px;}
+.egg-display{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:5px;text-align:center;padding:14px;background:#001020;border-radius:8px;margin:12px 0;border:1px solid var(--border);}
+.egg-meaning{font-size:12px;color:var(--text-dim);text-align:center;margin-bottom:10px;}
+.egg-explain{background:#0a1f0f;border:1px solid #1a4a2a;border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.8;color:#a7f3d0;margin-top:10px;display:none;}
+.egg-explain strong{color:var(--easy);}
+.reveal-btn{background:var(--easy);border:none;border-radius:6px;padding:9px 18px;color:#000;font-family:var(--font-display);font-size:10px;letter-spacing:1px;cursor:pointer;font-weight:700;}
+
+.morse-visual{font-family:var(--font-display);font-size:18px;letter-spacing:6px;color:var(--accent);padding:12px 16px;background:#001020;border-radius:6px;text-align:center;margin:10px 0;word-break:break-all;}
+.barcode-visual{display:flex;align-items:flex-end;gap:2px;justify-content:center;padding:12px 16px;background:white;border-radius:6px;margin:10px 0;height:65px;}
+.bar{background:#000;height:100%;border-radius:1px;}
+.egg-visual{text-align:center;padding:14px;background:#0a1628;border-radius:8px;margin:10px 0;border:1px solid var(--border);}
+.egg-code{font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:5px;margin-bottom:8px;}
+.egg-code .c1{color:#ef4444;}.egg-code .c2{color:#f59e0b;}.egg-code .c3{color:#10b981;}
+.egg-code .c4{color:#00d4ff;}.egg-code .c5{color:#7c3aed;}.egg-code .c6{color:#f97316;}
+.egg-legend{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text-dim);}
+.egg-legend span{background:var(--surface);padding:3px 8px;border-radius:4px;}
+
+.tip-box{background:#0a1f0f;border:1px solid var(--easy);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:12px;color:var(--easy);}
+.tip-box::before{content:'💡 TIPP: ';font-weight:700;}
+.done-btn{display:inline-block;margin-top:16px;background:linear-gradient(135deg,var(--accent2),#5b21b6);border:none;border-radius:8px;padding:11px 22px;color:white;font-family:var(--font-display);font-size:11px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;}
+.done-btn.completed{background:linear-gradient(135deg,var(--easy),#059669);cursor:default;}
+
+.boss-glow{animation:bossGlow 2s ease-in-out infinite alternate;}
+@keyframes bossGlow{from{box-shadow:0 0 10px rgba(124,58,237,.2);}to{box-shadow:0 0 30px rgba(124,58,237,.5),0 0 60px rgba(124,58,237,.2);}}
+.map-connector{display:flex;justify-content:center;height:16px;}
+.map-connector::before{content:'';width:2px;background:var(--border);}
+.side-mission-note{background:#001020;border:1px dashed var(--accent);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;}
+
+.completion-banner{display:none;text-align:center;padding:36px 20px;background:linear-gradient(135deg,#0a1628,#1e0a3c);border:1px solid var(--boss);border-radius:12px;margin-top:24px;}
+.completion-banner h2{font-family:var(--font-display);font-size:clamp(18px,4vw,28px);background:linear-gradient(135deg,var(--gold),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.star-row{font-size:32px;margin:12px 0;letter-spacing:8px;}
+
+/* ══ PRINT ══ */
+@media print{
+  body{background:#fff !important;color:#000 !important;}
+  #start-screen,.overlay,.save-bar,.badges,.roles-box,
+  .done-btn,.check-btn,.reveal-btn,.morse-decoder,
+  .barcode-quiz,.egg-puzzle,.map-connector,.side-mission-note,
+  .agency-badge,.save-indicator,.completion-banner{display:none !important;}
+  .level-card{border:1px solid #ccc !important;border-left:4px solid #333 !important;break-inside:avoid;margin-bottom:12px;}
+  .level-body{max-height:none !important;padding:0 12px 16px !important;border-top:1px solid #eee !important;display:block !important;}
+  .level-header{padding:10px 12px !important;}
+  .level-num,.level-title{color:#000 !important;}
+  .tag{background:#eee !important;color:#333 !important;}
+  .answer-box{background:#f9f9f9 !important;border:1px solid #ccc !important;color:#000 !important;min-height:60px !important;}
+  .mission-intro{background:#f0f8ff !important;color:#333 !important;border-left:3px solid #0088aa !important;}
+  .task{background:#fafafa !important;border:1px solid #ddd !important;color:#000 !important;}
+  .task-num,.task em{color:#0055aa !important;}
+  .task strong{color:#cc6600 !important;}
+  .tip-box{background:#f0fff4 !important;border:1px solid #0a0 !important;color:#006600 !important;}
+  .morse-visual{background:#f0f0f0 !important;color:#000 !important;}
+  .print-header{display:block !important;}
+  .header h1{color:#000 !important;-webkit-text-fill-color:#000 !important;}
+  .story-box{background:#f8f8f8 !important;border:1px solid #aaa !important;}
+  .story-box p,.story-box strong{color:#000 !important;}
+  .progress-section{display:none !important;}
+  .section-label{color:#000 !important;}
+  .section-label::after{background:#ccc !important;}
+}
+.print-header{display:none;text-align:center;padding:16px 0 8px;border-bottom:2px solid #000;margin-bottom:16px;}
+.print-header h2{font-size:20px;font-weight:700;margin-bottom:4px;}
+.print-header p{font-size:12px;color:#555;}
+
+@media(max-width:600px){
+  .roles-box{grid-template-columns:1fr;}
+  .level-icon{display:none;}
+  .egg-builder{flex-direction:column;}
+  .save-btns{justify-content:flex-end;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ START SCREEN ══ -->
+<div id="start-screen">
+  <div class="start-box">
+    <div style="font-family:var(--font-display);font-size:11px;letter-spacing:4px;color:var(--accent);margin-bottom:12px;">🔐 CODE AGENCY</div>
+    <h1>Lernlandkarte</h1>
+    <p class="sub">Codes im Alltag · Klasse 6</p>
+
+    <div class="start-label">NEU BEGINNEN – GRUPPENCODE</div>
+    <input class="start-input" id="group-input" maxlength="20" placeholder="z. B. GRUPPE3" autocomplete="off">
+    <div class="start-hint">Denkt euch einen Code – z.B. GRUPPE1, ADLER, TEAM42.<br>Diesen Code braucht ihr, um eure Datei später zu laden!</div>
+    <button class="start-btn" onclick="startNew()" type="button">🚀 Neue Mission starten</button>
+
+    <div class="start-divider">oder gespeicherten Stand laden</div>
+
+    <div class="file-drop" id="start-drop">
+      <input type="file" accept=".json" onchange="loadFromFile(this)" id="file-input-start">
+      <div class="icon">📂</div>
+      <p>Gespeicherte Datei hier ablegen<br>oder klicken zum Auswählen<br><small style="color:#475569">(GRUPPE3_codeagency.json)</small></p>
+    </div>
+
+    <div class="start-err" id="start-err">Bitte einen Gruppencode eingeben!</div>
+  </div>
+</div>
+
+<!-- ══ LOAD OVERLAY (während App läuft) ══ -->
+<div class="overlay" id="load-overlay">
+  <div class="overlay-box">
+    <h3>📂 FORTSCHRITT LADEN</h3>
+    <p>Wähle deine gespeicherte Datei aus H: oder wo ihr sie abgelegt habt.</p>
+    <div class="file-drop">
+      <input type="file" accept=".json" onchange="loadFromFile(this)">
+      <div class="icon">📂</div>
+      <p>Datei auswählen<br><small style="color:#475569">(GRUPPE3_codeagency.json)</small></p>
+    </div>
+    <button class="overlay-close" onclick="closeOverlay()" type="button">Abbrechen</button>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="main-app">
+  <div class="container">
+
+    <div class="print-header" id="print-header">
+      <h2>CODE AGENCY – Lernlandkarte</h2>
+      <p id="print-group-name"></p>
+      <p id="print-date"></p>
+    </div>
+
+    <div class="header">
+      <div class="agency-badge">🔐 Geheimauftrag Aktiviert</div>
+      <h1>CODE AGENCY</h1>
+      <p class="subtitle">Interaktive Lernlandkarte · Klasse 6 · Codes im Alltag</p>
+    </div>
+
+    <!-- SAVE BAR -->
+    <div class="save-bar">
+      <span class="gname">👥 <span id="display-groupname"></span></span>
+      <div class="save-btns">
+        <button class="sbtn green" onclick="saveToFile()" type="button">💾 Auf H: speichern</button>
+        <button class="sbtn purple" onclick="openOverlay()" type="button">📂 Datei laden</button>
+        <button class="sbtn print" onclick="printAnswers()" type="button">🖨️ PDF / Drucken</button>
+        <button class="sbtn" onclick="confirmReset()" type="button">🔄 Neu</button>
+      </div>
+    </div>
+
+    <!-- Speicher-Anleitung -->
+    <div style="background:#001829;border:1px solid var(--accent);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--accent);line-height:1.8;">
+      💡 <strong>So speichert ihr euren Fortschritt:</strong><br>
+      1. Klickt <strong>„💾 Auf H: speichern"</strong> → eine Datei wird heruntergeladen<br>
+      2. Speichert sie auf eurem <strong>H: Laufwerk</strong><br>
+      3. Nächste Stunde: <strong>„📂 Datei laden"</strong> → dieselbe Datei auswählen → alles wieder da!
+    </div>
+
+    <div class="story-box">
+      <div class="label">📜 MISSION BRIEFING</div>
+      <p>Das Schulfest steht kurz vor dem Start – doch dann passiert das Undenkbare:<br>
+      <strong>Alle Pläne sind in geheimen Codes verschlüsselt worden!</strong> Die Dekoration, der Essensstand, die Musikanlage – niemand weiß mehr, was wo aufgebaut werden soll.<br><br>
+      Ihr seid das einzige Team, das noch helfen kann. Als <strong>Code Agents</strong> müsst ihr Morsecode entschlüsseln, Strichcodes analysieren und Eiercodes zusammensetzen – und am Ende euren eigenen Code erfinden!</p>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-header">
+        <span>⚡ AGENTEN-FORTSCHRITT</span>
+        <span class="pts">🏆 <span id="pts-display">0</span> / 95 Punkte</span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+      <div class="badges">
+        <div class="badge" id="badge-morse">📡 Morse-Experte</div>
+        <div class="badge" id="badge-barcode">🔲 Barcode-Detektiv</div>
+        <div class="badge" id="badge-egg">🥚 Eiercode-Profi</div>
+        <div class="badge" id="badge-creator">✍️ Code-Erfinder</div>
+        <div class="badge" id="badge-boss">⚡ Top-Agent</div>
+      </div>
+    </div>
+
+    <div class="section-label">👥 Gruppenrollen</div>
+    <div class="roles-box">
+      <div class="role-card"><div class="icon">🔍</div><div class="role-name">Analyst</div><div class="role-desc">Liest vor, steuert die Diskussion.</div></div>
+      <div class="role-card"><div class="icon">✏️</div><div class="role-name">Protokollant</div><div class="role-desc">Tippt Antworten und speichert regelmäßig.</div></div>
+      <div class="role-card"><div class="icon">🚀</div><div class="role-name">Präsentator</div><div class="role-desc">Erklärt am Ende die Ergebnisse.</div></div>
+    </div>
+
+    <div class="section-label">🗺️ Lernlandkarte – Level 1 bis Boss</div>
+
+    <!-- ═══ LV 1 ═══ -->
+    <div class="level-card easy" id="lv1">
+      <button class="level-header" onclick="toggleLevel('lv1')" type="button">
+        <div class="level-num">01</div><div class="level-icon">📡</div>
+        <div class="level-meta">
+          <div class="level-title">Erstkontakt – Was ist Morsecode?</div>
+          <div class="level-tags"><span class="tag tag-easy">LEICHT</span><span class="tag tag-pts">⭐ 10 Punkte</span><span class="tag tag-skill">Analyse</span></div>
+        </div><div class="chevron" id="ch-lv1">▼</div>
+      </button>
+      <div class="level-body" id="body-lv1">
+        <div class="mission-intro">📌 <strong>Mission:</strong> Findet heraus, wie Morsecode funktioniert!</div>
+        <div class="morse-visual">... --- ...</div>
+        <div class="morse-decoder">
+          <span class="dec-title">🔄 TEXT → MORSECODE</span>
+          <div class="dec-row"><input class="dec-input" id="morse-input" placeholder="Namen eingeben …" oninput="encodeMorse()" autocomplete="off"></div>
+          <div class="dec-output" id="morse-output">· · · — — — · · ·</div>
+          <div class="dec-hint">Tippe Text → Morsecode erscheint sofort.</div>
+          <span class="dec-title" style="margin-top:14px;">🔄 MORSECODE → TEXT</span>
+          <div class="dec-row"><input class="dec-input" id="decode-input" placeholder="· − · ·   −   · −   /   …" oninput="decodeMorse()" autocomplete="off"></div>
+          <div class="dec-output" id="decode-output">?</div>
+          <div class="dec-hint">Buchstaben durch Leerzeichen, Wörter durch / trennen.</div>
+        </div>
+        <span class="task-label" style="margin-top:14px;">Morse-Alphabet</span>
+        <div class="morse-table-small" id="morse-ref"></div>
+        <div class="task-block"><span class="task-label">📋 AUFGABEN</span>
+          <div class="task"><span class="task-num">AUFGABE 1.1 – SOS entschlüsseln</span>Was bedeutet <em>···  −−−  ···</em>? Wann wurde es berühmt?
+            <label class="input-label">✏️ Antwort:</label>
+            <textarea class="answer-box" id="ans-lv1-1" placeholder="SOS bedeutet …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 1.2 – Namen kodieren</span>Tippt euren Vornamen in den Decoder und schreibt den Code auf.
+            <label class="input-label">✏️ Morsecode:</label>
+            <textarea class="answer-box" id="ans-lv1-2" style="min-height:50px;" placeholder="A = ·−  …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 1.3 – Wozu ist Morsecode nützlich?</span>Zwei Situationen ohne Schrift:
+            <label class="input-label">✏️ Situation 1:</label>
+            <textarea class="answer-box" id="ans-lv1-3a" style="min-height:50px;" placeholder="z.B. …" oninput="autoSave()"></textarea>
+            <label class="input-label">✏️ Situation 2:</label>
+            <textarea class="answer-box" id="ans-lv1-3b" style="min-height:50px;" placeholder="z.B. …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <div class="tip-box">Leerzeichen zwischen Buchstaben = Pause. Wörter trennen mit /</div>
+        <button class="done-btn" id="btn-lv1" onclick="markDone('lv1',10,'badge-morse',this)" type="button">✔ Level abgeschlossen</button>
+      </div>
+    </div><div class="map-connector"></div>
+
+    <!-- ═══ LV 2 ═══ -->
+    <div class="level-card easy" id="lv2">
+      <button class="level-header" onclick="toggleLevel('lv2')" type="button">
+        <div class="level-num">02</div><div class="level-icon">🔉</div>
+        <div class="level-meta">
+          <div class="level-title">Piep oder Strrrr – Morsecode entschlüsseln</div>
+          <div class="level-tags"><span class="tag tag-easy">LEICHT</span><span class="tag tag-pts">⭐ 10 Punkte</span><span class="tag tag-skill">Anwendung</span></div>
+        </div><div class="chevron" id="ch-lv2">▼</div>
+      </button>
+      <div class="level-body" id="body-lv2">
+        <div class="mission-intro">📌 <strong>Mission:</strong> Entschlüsselt die Nachricht aus dem Code-Labor!</div>
+        <div class="morse-visual">−· ·− −·−· ···· / ·· −− / ·−·· ·− ···· ·−·</div>
+        <div class="task-block"><span class="task-label">📋 AUFGABEN</span>
+          <div class="task"><span class="task-num">AUFGABE 2.1 – Entschlüsseln</span>
+            <label class="input-label">✏️ Entschlüsselte Nachricht:</label>
+            <textarea class="answer-box" id="ans-lv2-1" style="min-height:50px;" placeholder="Lösung: …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 2.2 – Übertragungsarten vergleichen</span>Ton / Licht / Text: je Vorteil + Nachteil.
+            <label class="input-label">✏️ Tabelle:</label>
+            <textarea class="answer-box" id="ans-lv2-2" placeholder="Ton: Vorteil … / Nachteil …&#10;Licht: …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 2.3 – Geheimbotschaft</span>Erfindet eine Botschaft (4–6 Wörter).
+            <label class="input-label">✏️ Klartext:</label>
+            <textarea class="answer-box" id="ans-lv2-3a" style="min-height:44px;" placeholder="z.B. Das Schulfest ist gerettet" oninput="autoSave()"></textarea>
+            <label class="input-label">✏️ Morsecode:</label>
+            <textarea class="answer-box" id="ans-lv2-3b" style="min-height:44px;" placeholder="· · · − − − …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <div class="tip-box">Decoder aus Level 1 aufklappen!</div>
+        <button class="done-btn" id="btn-lv2" onclick="markDone('lv2',10,null,this)" type="button">✔ Level abgeschlossen</button>
+      </div>
+    </div><div class="map-connector"></div>
+
+    <!-- ═══ LV 3 ═══ -->
+    <div class="level-card medium" id="lv3">
+      <button class="level-header" onclick="toggleLevel('lv3')" type="button">
+        <div class="level-num">03</div><div class="level-icon">🔲</div>
+        <div class="level-meta">
+          <div class="level-title">Streifen-Geheimnisse – Der Strichcode</div>
+          <div class="level-tags"><span class="tag tag-medium">MITTEL</span><span class="tag tag-pts">⭐ 15 Punkte</span><span class="tag tag-skill">Analyse + Quiz</span></div>
+        </div><div class="chevron" id="ch-lv3">▼</div>
+      </button>
+      <div class="level-body" id="body-lv3">
+        <div class="mission-intro">📌 <strong>Mission:</strong> Erklärt den Strichcode und besteht das Quiz!</div>
+        <div class="barcode-visual">
+          <div class="bar" style="width:3px;height:100%"></div><div class="bar" style="width:1px;height:80%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:60%"></div><div class="bar" style="width:3px;height:100%"></div><div class="bar" style="width:1px;height:80%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:90%"></div><div class="bar" style="width:3px;height:100%"></div><div class="bar" style="width:2px;height:70%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:3px;height:85%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:2px;height:75%"></div><div class="bar" style="width:1px;height:100%"></div><div class="bar" style="width:3px;height:90%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:1px;height:65%"></div><div class="bar" style="width:2px;height:100%"></div><div class="bar" style="width:3px;height:80%"></div><div class="bar" style="width:1px;height:100%"></div>
+        </div>
+        <div class="barcode-quiz">
+          <span class="dec-title">🎯 STRICHCODE-QUIZ</span>
+          <div class="quiz-question"><p><strong>Frage 1:</strong> Wie viele Ziffern hat ein EAN-13-Code?</p>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="bq1" value="a"> 8 Ziffern</label>
+              <label class="quiz-option"><input type="radio" name="bq1" value="b"> 13 Ziffern</label>
+              <label class="quiz-option"><input type="radio" name="bq1" value="c"> 16 Ziffern</label>
+            </div>
+            <button class="check-btn" type="button" onclick="checkQuiz('bq1','b','✅ Richtig! EAN-13 = genau 13 Stellen.','❌ Falsch. EAN-13 = 13 Ziffern.')">Prüfen</button>
+            <div class="quiz-feedback" id="bq1-fb"></div>
+          </div>
+          <div class="quiz-question"><p><strong>Frage 2:</strong> Was verraten die ersten 2–3 Ziffern?</p>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="bq2" value="a"> Den Preis</label>
+              <label class="quiz-option"><input type="radio" name="bq2" value="b"> Das MHD</label>
+              <label class="quiz-option"><input type="radio" name="bq2" value="c"> Das Herkunftsland</label>
+            </div>
+            <button class="check-btn" type="button" onclick="checkQuiz('bq2','c','✅ Korrekt! 40–44 = Deutschland.','❌ Falsch. = Herkunftsland.')">Prüfen</button>
+            <div class="quiz-feedback" id="bq2-fb"></div>
+          </div>
+          <div class="quiz-question"><p><strong>Frage 3:</strong> Wozu dient die letzte Ziffer?</p>
+            <div class="quiz-options">
+              <label class="quiz-option"><input type="radio" name="bq3" value="a"> Nennt den Hersteller</label>
+              <label class="quiz-option"><input type="radio" name="bq3" value="b"> Prüfziffer – erkennt Fehler</label>
+              <label class="quiz-option"><input type="radio" name="bq3" value="c"> Produktionsjahr</label>
+            </div>
+            <button class="check-btn" type="button" onclick="checkQuiz('bq3','b','✅ Super! Prüfziffer aus den 12 anderen.','❌ Falsch. = Prüfziffer.')">Prüfen</button>
+            <div class="quiz-feedback" id="bq3-fb"></div>
+          </div>
+        </div>
+        <div class="task-block"><span class="task-label">📋 AUFGABEN</span>
+          <div class="task"><span class="task-num">AUFGABE 3.1 – Vergleich Strichcode / Morsecode</span>
+            <label class="input-label">✏️ Gemeinsamkeiten (mind. 3):</label>
+            <textarea class="answer-box" id="ans-lv3-1a" placeholder="1. Beide …&#10;2. …&#10;3. …" oninput="autoSave()"></textarea>
+            <label class="input-label">✏️ Unterschiede (mind. 3):</label>
+            <textarea class="answer-box" id="ans-lv3-1b" placeholder="1. Morsecode … / Strichcode …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 3.2 – Scanner kaputt!</span>
+            <label class="input-label">✏️ Zwei Möglichkeiten (eine ohne Internet):</label>
+            <textarea class="answer-box" id="ans-lv3-2" placeholder="Möglichkeit 1: …&#10;Möglichkeit 2 (ohne Internet): …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <div class="tip-box">40–44 = Deutschland · 90–91 = Österreich · 76 = Schweiz</div>
+        <button class="done-btn" id="btn-lv3" onclick="markDone('lv3',15,'badge-barcode',this)" type="button">✔ Level abgeschlossen</button>
+      </div>
+    </div><div class="map-connector"></div>
+
+    <!-- ═══ LV 4 ═══ -->
+    <div class="level-card medium" id="lv4">
+      <button class="level-header" onclick="toggleLevel('lv4')" type="button">
+        <div class="level-num">04</div><div class="level-icon">🥚</div>
+        <div class="level-meta">
+          <div class="level-title">Eiercode-Rätsel – Baut euren eigenen Code!</div>
+          <div class="level-tags"><span class="tag tag-medium">MITTEL</span><span class="tag tag-pts">⭐ 15 Punkte</span><span class="tag tag-skill">Transfer + Puzzle</span></div>
+        </div><div class="chevron" id="ch-lv4">▼</div>
+      </button>
+      <div class="level-body" id="body-lv4">
+        <div class="mission-intro">📌 <strong>Mission:</strong> Eiercode lesen und eigenen bauen!</div>
+        <div class="egg-visual">
+          <div class="egg-code"><span class="c1">1</span><span class="c2">-</span><span class="c3">DE</span><span class="c2">-</span><span class="c4">BY</span><span class="c2">-</span><span class="c5">078</span><span class="c2">-</span><span class="c6">01</span></div>
+          <div class="egg-legend"><span style="color:#ef4444">1=Haltung</span><span style="color:#10b981">DE=Land</span><span style="color:#00d4ff">BY=Bundesland</span><span style="color:#7c3aed">078=Betrieb</span><span style="color:#f97316">01=Stall</span></div>
+        </div>
+        <div class="egg-puzzle">
+          <span class="dec-title">🥚 EIERCODE-BAUKASTEN</span>
+          <div class="egg-builder">
+            <div class="egg-slot"><label>Haltung</label><select class="egg-select" id="es-haltung" onchange="updateEggDisplay()"><option value="0">0–Bio</option><option value="1" selected>1–Freiland</option><option value="2">2–Boden</option><option value="3">3–Käfig</option></select></div>
+            <div class="egg-sep">–</div>
+            <div class="egg-slot"><label>Land</label><select class="egg-select" id="es-land" onchange="updateEggDisplay()"><option value="DE">DE 🇩🇪</option><option value="AT">AT 🇦🇹</option><option value="CH">CH 🇨🇭</option><option value="FR">FR 🇫🇷</option><option value="NL">NL 🇳🇱</option></select></div>
+            <div class="egg-sep">–</div>
+            <div class="egg-slot"><label>Bundesland</label><select class="egg-select" id="es-bl" onchange="updateEggDisplay()"><option value="BY">BY Bayern</option><option value="BW">BW BaWü</option><option value="NI">NI Nieder.</option><option value="NW">NW NRW</option><option value="HE">HE Hessen</option></select></div>
+            <div class="egg-sep">–</div>
+            <div class="egg-slot"><label>Betrieb</label><select class="egg-select" id="es-betrieb" onchange="updateEggDisplay()"><option value="001">001</option><option value="042">042</option><option value="078" selected>078</option><option value="123">123</option></select></div>
+            <div class="egg-sep">–</div>
+            <div class="egg-slot"><label>Stall</label><select class="egg-select" id="es-stall" onchange="updateEggDisplay()"><option value="01" selected>01</option><option value="02">02</option><option value="03">03</option></select></div>
+          </div>
+          <div class="egg-display" id="egg-display">1-DE-BY-078-01</div>
+          <div class="egg-meaning" id="egg-meaning">Freiland 🐔 · Deutschland 🇩🇪 · Bayern · Betrieb 078 · Stall 01</div>
+          <button class="reveal-btn" type="button" onclick="revealEggInfo()">🔍 Was bedeutet mein Code?</button>
+          <div class="egg-explain" id="egg-explain"></div>
+        </div>
+        <div class="task-block"><span class="task-label">📋 AUFGABEN</span>
+          <div class="task"><span class="task-num">AUFGABE 4.1 – Haltungsformen</span>
+            <label class="input-label">✏️ Tabelle + Begründung eurer Wahl:</label>
+            <textarea class="answer-box" id="ans-lv4-1" placeholder="0 = Bio …&#10;Wir wählen … weil …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 4.2 – Drei-Code-Vergleich</span>
+            <label class="input-label">✏️ Morse / Strichcode / Eiercode:</label>
+            <textarea class="answer-box" id="ans-lv4-2" placeholder="Morsecode: Was? … / Wer? … / Warum? …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 4.3 – Kritisch denken</span>
+            <label class="input-label">✏️ Kann man sich auf den Eiercode verlassen? (3–5 Sätze):</label>
+            <textarea class="answer-box" id="ans-lv4-3" placeholder="Wir denken, dass …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <div class="tip-box">0 = beste Tierhaltung. Käfig (3) in D verboten – Importeier möglich.</div>
+        <button class="done-btn" id="btn-lv4" onclick="markDone('lv4',15,'badge-egg',this)" type="button">✔ Level abgeschlossen</button>
+      </div>
+    </div><div class="map-connector"></div>
+
+    <!-- ═══ LV 5 ═══ -->
+    <div class="level-card hard" id="lv5">
+      <button class="level-header" onclick="toggleLevel('lv5')" type="button">
+        <div class="level-num">05</div><div class="level-icon">🛠️</div>
+        <div class="level-meta">
+          <div class="level-title">Eigener Code – Ihr seid die Entwickler!</div>
+          <div class="level-tags"><span class="tag tag-hard">SCHWER</span><span class="tag tag-pts">⭐ 20 Punkte</span><span class="tag tag-skill">Kreation</span></div>
+        </div><div class="chevron" id="ch-lv5">▼</div>
+      </button>
+      <div class="level-body" id="body-lv5">
+        <div class="mission-intro">📌 <strong>Mission:</strong> Entwickelt euren eigenen Code!</div>
+        <div class="task-block"><span class="task-label">📋 AUFGABEN</span>
+          <div class="task"><span class="task-num">AUFGABE 5.1 – Code-System</span>
+            <label class="input-label">✏️ Name eures Codes:</label>
+            <textarea class="answer-box" id="ans-lv5-1a" style="min-height:44px;" placeholder="z.B. AgentCode 3000" oninput="autoSave()"></textarea>
+            <label class="input-label">✏️ Code-Tabelle (mind. 10 Buchstaben):</label>
+            <textarea class="answer-box" id="ans-lv5-1b" placeholder="A = ○  B = □  C = △ …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 5.2 – Botschaft verschlüsseln</span>Verschlüsselt: <em style="color:var(--gold)">"Das Schulfest ist gerettet!"</em>
+            <label class="input-label">✏️ Verschlüsselte Botschaft:</label>
+            <textarea class="answer-box" id="ans-lv5-2" placeholder="D = … A = … …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 5.3 – Reflexion</span>
+            <label class="input-label">✏️ Vergleich mit Morsecode (4–6 Sätze):</label>
+            <textarea class="answer-box" id="ans-lv5-3" placeholder="Unser Code ist … Allerdings …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <div class="tip-box">Gute Codes: eindeutig und schnell zu schreiben.</div>
+        <button class="done-btn" id="btn-lv5" onclick="markDone('lv5',20,'badge-creator',this)" type="button">✔ Level abgeschlossen</button>
+      </div>
+    </div><div class="map-connector"></div>
+
+    <!-- ═══ LV 6 ═══ -->
+    <div class="level-card hard" id="lv6">
+      <button class="level-header" onclick="toggleLevel('lv6')" type="button">
+        <div class="level-num">06</div><div class="level-icon">💬</div>
+        <div class="level-meta">
+          <div class="level-title">Gruppen-Gipfel – Austausch &amp; Präsentation</div>
+          <div class="level-tags"><span class="tag tag-hard">SCHWER</span><span class="tag tag-pts">⭐ 10 Punkte</span><span class="tag tag-skill">Kommunikation</span></div>
+        </div><div class="chevron" id="ch-lv6">▼</div>
+      </button>
+      <div class="level-body" id="body-lv6">
+        <div class="mission-intro">📌 <strong>Mission:</strong> 3 Minuten Präsentation – bereitet euch vor!</div>
+        <div class="task-block"><span class="task-label">📋 AUFGABEN</span>
+          <div class="task"><span class="task-num">AUFGABE 6.1 – Vorbereitung</span>
+            <label class="input-label">✏️ 3 Kernpunkte:</label>
+            <textarea class="answer-box" id="ans-lv6-1" placeholder="1. …&#10;2. …&#10;3. …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">AUFGABE 6.2 – Code-Tausch</span>
+            <label class="input-label">✏️ Ergebnis:</label>
+            <textarea class="answer-box" id="ans-lv6-2" style="min-height:50px;" placeholder="Botschaft: … / Zeit: … Min." oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <button class="done-btn" id="btn-lv6" onclick="markDone('lv6',10,null,this)" type="button">✔ Level abgeschlossen</button>
+      </div>
+    </div><div class="map-connector"></div>
+
+    <!-- ═══ BOSS ═══ -->
+    <div class="level-card boss boss-glow" id="lv-boss">
+      <button class="level-header" onclick="toggleLevel('lv-boss')" type="button">
+        <div class="level-num" style="font-size:12px;">BOSS</div><div class="level-icon">⚡</div>
+        <div class="level-meta">
+          <div class="level-title">Boss-Level – Reflexion &amp; Bewertung der Code-Welt</div>
+          <div class="level-tags"><span class="tag tag-boss">BOSS</span><span class="tag tag-pts">⭐ 15 Punkte</span><span class="tag tag-skill">Reflexion · Urteil</span></div>
+        </div><div class="chevron" id="ch-lv-boss">▼</div>
+      </button>
+      <div class="level-body" id="body-lv-boss">
+        <div class="mission-intro">⚡ <strong>Finaler Einsatz:</strong> Beweist echtes Nachdenken über Codes!</div>
+        <div class="task-block"><span class="task-label">📋 BOSS-AUFGABEN</span>
+          <div class="task"><span class="task-num">BOSS 1 – Eigene Definition</span>
+            <label class="input-label">✏️ Was ist ein Code? (2–3 Sätze, ohne Wikipedia!):</label>
+            <textarea class="answer-box" id="ans-boss-1" placeholder="Ein Code ist … weil …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">BOSS 2 – Macht &amp; Kontrolle</span>
+            <label class="input-label">✏️ Nützlich + problematisch – Beispiel + Stellungnahme:</label>
+            <textarea class="answer-box" id="ans-boss-2" placeholder="Codes sind nützlich, wenn … Problematisch wird es, wenn …" oninput="autoSave()"></textarea>
+          </div>
+          <div class="task"><span class="task-num">BOSS 3 – Zukunftsvision</span>
+            <label class="input-label">✏️ Euer Zukunfts-Code in 50 Jahren:</label>
+            <textarea class="answer-box" id="ans-boss-3" placeholder="In 50 Jahren könnte man … codieren …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+        <div class="tip-box">Gesellschaftliches Nachdenken über Codes zeigen!</div>
+        <button class="done-btn" id="btn-boss" onclick="markDone('lv-boss',15,'badge-boss',this)" type="button">⚡ Boss besiegt!</button>
+      </div>
+    </div>
+
+    <!-- NEBENMISSION -->
+    <div style="margin-top:28px;">
+      <div class="section-label">🛸 Nebenmissionen – Freiwillig</div>
+      <div class="level-card side" id="lv-s1">
+        <button class="level-header" onclick="toggleLevel('lv-s1')" type="button">
+          <div class="level-num">★</div><div class="level-icon">📱</div>
+          <div class="level-meta">
+            <div class="level-title">Nebenmission A – QR-Code vs. Strichcode</div>
+            <div class="level-tags"><span class="tag tag-side">BONUS</span><span class="tag tag-skill">Vergleich</span></div>
+          </div><div class="chevron" id="ch-lv-s1">▼</div>
+        </button>
+        <div class="level-body" id="body-lv-s1">
+          <div class="side-mission-note">🛸 Kein Pflicht-Level!</div>
+          <div class="task">
+            <label class="input-label">✏️ Analyse QR-Code vs. Strichcode:</label>
+            <textarea class="answer-box" id="ans-s1" placeholder="QR-Code kann … speichern …" oninput="autoSave()"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPLETION -->
+    <div class="completion-banner" id="completion-banner">
+      <div class="star-row">⭐ ⭐ ⭐</div>
+      <h2>🎉 Mission erfüllt! Schulfest gerettet!</h2>
+      <p style="color:var(--text-dim);margin-top:8px;">Ihr seid <strong style="color:var(--gold)">Code Agency Top-Agents!</strong></p>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="sbtn green" style="padding:12px 20px;" onclick="saveToFile()" type="button">💾 Fortschritt speichern</button>
+        <button class="sbtn print" style="padding:12px 20px;" onclick="printAnswers()" type="button">🖨️ Als PDF drucken</button>
+      </div>
+    </div>
+    <div style="height:60px;"></div>
+  </div>
+</div>
+
+<div class="save-indicator" id="save-indicator">💾 Automatisch gespeichert</div>
+
+<script>
+// ════════ STATE ════════
+var GROUP_KEY = '';
+var totalPoints = 0;
+var earnedLevels = {};
+var ANS_IDS = [
+  'lv1-1','lv1-2','lv1-3a','lv1-3b',
+  'lv2-1','lv2-2','lv2-3a','lv2-3b',
+  'lv3-1a','lv3-1b','lv3-2',
+  'lv4-1','lv4-2','lv4-3',
+  'lv5-1a','lv5-1b','lv5-2','lv5-3',
+  'lv6-1','lv6-2',
+  'boss-1','boss-2','boss-3','s1'
+];
+var LEVEL_PTS = {lv1:10,lv2:10,lv3:15,lv4:15,lv5:20,lv6:10,'lv-boss':15};
+var BADGE_MAP = {lv1:'badge-morse',lv3:'badge-barcode',lv4:'badge-egg',lv5:'badge-creator','lv-boss':'badge-boss'};
+
+// ════════ START ════════
+function startNew() {
+  var val = document.getElementById('group-input').value.trim().toUpperCase();
+  if (!val) { document.getElementById('start-err').style.display='block'; return; }
+  GROUP_KEY = val;
+  launchApp();
+}
+
+function launchApp() {
+  document.getElementById('display-groupname').textContent = GROUP_KEY;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+}
+
+// ════════ COLLECT / APPLY DATA ════════
+function collectData() {
+  var answers = {};
+  for (var i=0; i<ANS_IDS.length; i++) {
+    var el = document.getElementById('ans-'+ANS_IDS[i]);
+    if (el) answers[ANS_IDS[i]] = el.value;
+  }
+  return {
+    group: GROUP_KEY,
+    savedAt: new Date().toISOString(),
+    points: totalPoints,
+    levels: earnedLevels,
+    answers: answers
+  };
+}
+
+function applyData(data) {
+  GROUP_KEY = data.group || GROUP_KEY;
+  // answers
+  var ans = data.answers || {};
+  for (var id in ans) {
+    var el = document.getElementById('ans-'+id);
+    if (el) el.value = ans[id];
+  }
+  // points
+  totalPoints = data.points || 0;
+  document.getElementById('pts-display').textContent = totalPoints;
+  document.getElementById('progress-fill').style.width = Math.min(100,(totalPoints/95)*100)+'%';
+  // levels
+  var lv = data.levels || {};
+  for (var lvid in lv) {
+    earnedLevels[lvid] = lv[lvid];
+    var btn = document.getElementById('btn-'+lvid);
+    if (btn) { btn.classList.add('completed'); btn.textContent='✅ Erledigt!'; btn.disabled=true; }
+    if (BADGE_MAP[lvid]) {
+      var b = document.getElementById(BADGE_MAP[lvid]);
+      if (b) b.classList.add('earned');
+    }
+  }
+}
+
+// ════════ SAVE TO FILE ════════
+function saveToFile() {
+  var data = collectData();
+  var json = JSON.stringify(data, null, 2);
+  var blob = new Blob([json], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = GROUP_KEY + '_codeagency.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showSaveIndicator('💾 Datei gespeichert!');
+}
+
+// ════════ LOAD FROM FILE ════════
+function loadFromFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data.group) { alert('Ungültige Datei!'); return; }
+      GROUP_KEY = data.group;
+      closeOverlay();
+      launchApp();
+      applyData(data);
+      showSaveIndicator('📂 Fortschritt geladen!');
+    } catch(err) {
+      alert('Fehler beim Laden: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ════════ AUTO-SAVE INDICATOR (kein localStorage) ════════
+var saveTimer = null;
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){ showSaveIndicator('✏️ Tipp: Zwischenspeichern nicht vergessen!'); }, 60000); // Erinnerung nach 1 Min
+}
+
+function showSaveIndicator(msg) {
+  var el = document.getElementById('save-indicator');
+  el.textContent = msg || '💾 Gespeichert';
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+// ════════ OVERLAY ════════
+function openOverlay(){ document.getElementById('load-overlay').classList.add('show'); }
+function closeOverlay(){ document.getElementById('load-overlay').classList.remove('show'); }
+
+// ════════ RESET ════════
+function confirmReset() {
+  if (!confirm('Alle Antworten und Fortschritt löschen?')) return;
+  location.reload();
+}
+
+// ════════ PRINT ════════
+function printAnswers() {
+  document.getElementById('print-group-name').textContent = 'Gruppe: ' + GROUP_KEY;
+  document.getElementById('print-date').textContent = 'Datum: ' + new Date().toLocaleDateString('de-DE');
+  var lvs = ['lv1','lv2','lv3','lv4','lv5','lv6','lv-boss','lv-s1'];
+  for (var i=0; i<lvs.length; i++) {
+    var b = document.getElementById('body-'+lvs[i]);
+    var c = document.getElementById('ch-'+lvs[i]);
+    if (b) b.classList.add('open');
+    if (c) c.textContent = '▲';
+  }
+  setTimeout(function(){ window.print(); }, 300);
+}
+
+// ════════ LEVEL TOGGLE ════════
+function toggleLevel(id) {
+  var body = document.getElementById('body-'+id);
+  var ch   = document.getElementById('ch-'+id);
+  if (!body) return;
+  if (body.classList.contains('open')) { body.classList.remove('open'); if(ch) ch.textContent='▼'; }
+  else { body.classList.add('open'); if(ch) ch.textContent='▲'; }
+}
+
+// ════════ POINTS ════════
+function markDone(id, pts, badge, btn) {
+  if (earnedLevels[id]) return;
+  earnedLevels[id] = pts;
+  totalPoints += pts;
+  btn.classList.add('completed'); btn.textContent='✅ Erledigt!'; btn.disabled=true;
+  document.getElementById('pts-display').textContent = totalPoints;
+  document.getElementById('progress-fill').style.width = Math.min(100,(totalPoints/95)*100)+'%';
+  if (badge) { var b=document.getElementById(badge); if(b) b.classList.add('earned'); }
+  var main=['lv1','lv2','lv3','lv4','lv5','lv6','lv-boss'], allDone=true;
+  for (var i=0;i<main.length;i++) { if(!earnedLevels[main[i]]){ allDone=false; break; } }
+  if (allDone) { var bn=document.getElementById('completion-banner'); if(bn){ bn.style.display='block'; bn.scrollIntoView({behavior:'smooth'}); } }
+  // Auto-save reminder
+  showSaveIndicator('✅ Level geschafft! Bitte speichern 💾');
+}
+
+// ════════ MORSE ════════
+var MORSE={A:'·−',B:'−···',C:'−·−·',D:'−··',E:'·',F:'··−·',G:'−−·',H:'····',I:'··',J:'·−−−',K:'−·−',L:'·−··',M:'−−',N:'−·',O:'−−−',P:'·−−·',Q:'−−·−',R:'·−·',S:'···',T:'−',U:'··−',V:'···−',W:'·−−',X:'−··−',Y:'−·−−',Z:'−−··','0':'−−−−−','1':'·−−−−','2':'··−−−','3':'···−−','4':'····−','5':'·····','6':'−····','7':'−−···','8':'−−−··','9':'−−−−·'};
+var MORSE_REV={};
+for(var k in MORSE){MORSE_REV[MORSE[k]]=k;}
+(function(){var el=document.getElementById('morse-ref');if(!el)return;var keys='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),html='';for(var i=0;i<keys.length;i++)html+='<div class="morse-cell"><div class="letter">'+keys[i]+'</div><div class="code">'+(MORSE[keys[i]]||'?')+'</div></div>';el.innerHTML=html;})();
+function encodeMorse(){var el=document.getElementById('morse-input'),out=document.getElementById('morse-output');if(!el||!out)return;var txt=el.value.toUpperCase(),r=[];for(var i=0;i<txt.length;i++){var c=txt[i];r.push(c===' '?'/':MORSE[c]||'?');}out.textContent=r.join('  ')||'·−';}
+function decodeMorse(){var el=document.getElementById('decode-input'),out=document.getElementById('decode-output');if(!el||!out)return;var txt=el.value.trim();if(!txt){out.textContent='?';return;}var words=txt.split('/'),dec=[];for(var w=0;w<words.length;w++){var codes=words[w].trim().split(/\s+/),word='';for(var c=0;c<codes.length;c++){var cd=codes[c].trim();if(cd)word+=(MORSE_REV[cd]||'?');}dec.push(word);}out.textContent=dec.join(' ')||'?';}
+
+// ════════ QUIZ ════════
+function checkQuiz(name,correct,ok,fail){var sel=document.querySelector('input[name="'+name+'"]:checked'),fb=document.getElementById(name+'-fb');if(!fb)return;if(!sel){fb.style.display='block';fb.className='quiz-feedback wrong';fb.textContent='⚠️ Bitte auswählen!';return;}fb.style.display='block';fb.className='quiz-feedback '+(sel.value===correct?'correct':'wrong');fb.textContent=(sel.value===correct?ok:fail);}
+
+// ════════ EGG ════════
+var HI={'0':{label:'Bio 🌿',info:'Freileben + Bio-Futter, strengste Regeln.'},'1':{label:'Freiland 🐔',info:'Tagsüber Zugang ins Freie.'},'2':{label:'Boden 🏠',info:'Stall ohne Käfig, kein Außenbereich.'},'3':{label:'Käfig ⚠️',info:'In D verboten – Importeier möglich.'}};
+var LI={DE:'Deutschland 🇩🇪',AT:'Österreich 🇦🇹',CH:'Schweiz 🇨🇭',FR:'Frankreich 🇫🇷',NL:'Niederlande 🇳🇱'};
+var BI={BY:'Bayern',BW:'Baden-Württemberg',NI:'Niedersachsen',NW:'NRW',HE:'Hessen'};
+function updateEggDisplay(){var h=document.getElementById('es-haltung').value,l=document.getElementById('es-land').value,bl=document.getElementById('es-bl').value,be=document.getElementById('es-betrieb').value,s=document.getElementById('es-stall').value;document.getElementById('egg-display').textContent=h+'-'+l+'-'+bl+'-'+be+'-'+s;document.getElementById('egg-meaning').textContent=HI[h].label+' · '+LI[l]+' · '+BI[bl]+' · Betrieb '+be+' · Stall '+s;document.getElementById('egg-explain').style.display='none';}
+function revealEggInfo(){var h=document.getElementById('es-haltung').value,l=document.getElementById('es-land').value,bl=document.getElementById('es-bl').value,be=document.getElementById('es-betrieb').value,s=document.getElementById('es-stall').value,el=document.getElementById('egg-explain');el.style.display='block';el.innerHTML='<strong>'+h+'-'+l+'-'+bl+'-'+be+'-'+s+'</strong><br><br>🐔 <strong>'+HI[h].label+':</strong> '+HI[h].info+'<br>🌍 '+LI[l]+' · 📍 '+BI[bl]+' · 🏭 Betrieb '+be+' · 🏠 Stall '+s;}
+</script>
+</body>
+</html>
